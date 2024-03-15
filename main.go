@@ -25,9 +25,7 @@ func main() {
 
 	user := router.Group("/user")
 	routes.UserRoutes(user)
-
-	// router.POST("/logine", controller.AdminLogin)
-	// router.Run(":9090")
+	
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "0909"

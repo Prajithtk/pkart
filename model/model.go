@@ -2,6 +2,7 @@ package model
 
 import (
 	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -56,9 +57,9 @@ type Category struct {
 }
 
 type Otp struct {
-	Id      uint
-	Otp     string
-	Email   string
+	Id      uint   `json:"id"`
+	Otp     string `json:"otp"`
+	Email   string `json:"email"`
 	Expires time.Time
 }
 

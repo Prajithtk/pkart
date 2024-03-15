@@ -21,7 +21,7 @@ func DbConnect() {
 	fmt.Println("Connected to database")
 
 	DB.AutoMigrate(&model.Users{})
-	DB.AutoMigrate(&model.Admin{})
+	// DB.AutoMigrate(&model.Admin{})
 	// DB.AutoMigrate(&model.Address{})
 	DB.AutoMigrate(&model.Products{})
 	DB.AutoMigrate(&model.Category{})
@@ -30,5 +30,5 @@ func DbConnect() {
 	// DB.AutoMigrate(&model.Coupons{})
 	// DB.AutoMigrate(&model.Payment{})
 	// DB.AutoMigrate(&model.Wishlist{})
-	// DB.AutoMigrate(&model.Otp{})
+	DB.AutoMigrate(&model.Otp{})
 }
