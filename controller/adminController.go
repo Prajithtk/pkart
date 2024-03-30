@@ -60,10 +60,10 @@ func BlockUser(c *gin.Context) {
 	database.DB.First(&user, id)
 	if user.Status == "blocked" {
 		database.DB.Model(&user).Update("status", "active")
-		c.JSON(http.StatusOK, gin.H{"message": "Unblocked User"})
+		c.JSON(200, gin.H{"message": "Unblocked User"})
 	} else {
 		database.DB.Model(&user).Update("status", "blocked")
-		c.JSON(http.StatusOK, gin.H{"message": "Blocked User"})
+		c.JSON(200, gin.H{"message": "Blocked User"})
 	}
 }
 
@@ -98,7 +98,7 @@ func AddCategory(c *gin.Context) {
 	if addCategory.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to add category"})
 	} else {
-		c.JSON(http.StatusSeeOther, gin.H{"message": "Category added successfully"})
+		c.JSON(200, gin.H{"message": "Category added successfully"})
 	}
 }
 func EditCategory(c *gin.Context) {
@@ -134,7 +134,7 @@ func DeleteCategory(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete category"})
 		return
 	}
-	c.JSON(http.StatusSeeOther, gin.H{"message": "Category Deleted Successfully"})
+	c.JSON(200, gin.H{"message": "Category Deleted Successfully"})
 }
 
 // -----------------------------product management--------------------------------//
@@ -153,27 +153,30 @@ func ViewProducts(c *gin.Context) {
 			"description": val.Description,
 			"category":    val.Category.Name,
 			"status":      val.Status,
-			"images1":	   val.Image1,
-			"images2":	   val.Image2,
-			"images3":	   val.Image3,
+			"images1":     val.Image1,
+			"images2":     val.Image2,
+			"images3":     val.Image3,
 		})
 	}
 }
 func AddProducts(c *gin.Context) {
-	err := c.ShouldBindJSON(&Product)
-	if err != nil {
+	// var Product model.Products
+	if err := c.ShouldBindJSON(&Product); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to bind json"})
 		return
 	}
 
-	var products model.Products
-	result := database.DB.Where("name=?", Product.Name).Find(&products)
-	if result.Error != nil {
+	// Checking if a product with the same name already exists
+
+	var existingProduct model.Products
+	if result := database.DB.Where("name=?", Product.Name).First(&existingProduct); result.Error == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "product already exists!!! try edit product"})
 		return
-	} else {
-		c.JSON(http.StatusSeeOther, gin.H{"message": "please upload images"})
 	}
+	// If no existing product found, proceed with adding the new product
+
+	c.JSON(http.StatusSeeOther, gin.H{"message": "please upload images"})
+
 }
 func ProductImage(c *gin.Context) {
 	file, err := c.MultipartForm()
@@ -182,23 +185,22 @@ func ProductImage(c *gin.Context) {
 		return
 	}
 	files := file.File["images"]
-	var imagepaths []string
+	var imagePaths []string
 
-	for _, val := range files {
-		filepath := "./images/" + val.Filename
-		if err := c.SaveUploadedFile(val, filepath); err != nil {
+	for i, val := range files {
+		filePath := "./images/" + strconv.Itoa(i) + "_" + val.Filename
+		if err := c.SaveUploadedFile(val, filePath); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to save images"})
 			return
 		}
-		imagepaths = append(imagepaths, filepath)
+		imagePaths = append(imagePaths, filePath)
 	}
-	Product.Image1 = imagepaths[0]
-	Product.Image2 = imagepaths[1]
-	Product.Image3 = imagepaths[2]
+	Product.Image1 = imagePaths[0]
+	Product.Image2 = imagePaths[1]
+	Product.Image3 = imagePaths[2]
 
-	upload := database.DB.Create(&Product)
-	if upload.Error != nil {
-		c.JSON(501, gin.H{"error": "Product already exist"})
+	if err := database.DB.Create(&Product).Error; err != nil {
+		c.JSON(501, gin.H{"error": "Failed to add product to database"})
 		return
 	}
 
@@ -209,14 +211,14 @@ func ProductImage(c *gin.Context) {
 
 func EditProducts(c *gin.Context) {
 	var productinfo model.Products
-	err := c.ShouldBindJSON(&productinfo)
-	if err != nil {
+	if err := c.ShouldBindJSON(&productinfo); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to bind json"})
+		return
 	}
 	id := c.Param("ID")
-	perr := database.DB.Where("id=?", id).Updates(&productinfo)
-	if perr.Error != nil {
+	if err := database.DB.Where("id=?", id).Updates(&productinfo); err.Error != nil {
 		c.JSON(404, gin.H{"error": "failed to edit product"})
+		return
 	}
 	c.JSON(200, gin.H{"message": "successfully editted"})
 }

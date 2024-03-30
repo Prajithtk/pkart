@@ -5,7 +5,6 @@ go 1.22.0
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.9.1
-	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/joho/godotenv v1.5.1
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gorm.io/driver/postgres v1.5.7
@@ -13,9 +12,9 @@ require (
 )
 
 require (
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 )
 

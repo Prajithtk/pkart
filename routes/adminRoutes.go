@@ -9,7 +9,7 @@ import (
 
 func AdminRoutes(r *gin.RouterGroup) {
 	r.POST("/login", controller.AdminLogin)
-	r.GET("/users", middleware.AuthMiddleware("admin"), controller.ListUsers)
+	r.POST("/users", middleware.AuthMiddleware("admin"), controller.ListUsers)
 	r.PATCH("/user/:ID", middleware.AuthMiddleware("admin"), controller.BlockUser)
 	r.GET("/categories", middleware.AuthMiddleware("admin"), controller.ViewCategory)
 	r.POST("/category", middleware.AuthMiddleware("admin"), controller.AddCategory)
