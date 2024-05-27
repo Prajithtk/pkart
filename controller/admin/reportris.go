@@ -68,9 +68,9 @@ func GetReportData(c *gin.Context) {
 	marginY := 20.0
 
 	lineHt := 10.0
-	const colNumber = 7
+	const colNumber = 10
 
-	pdf := fpdf.New("P", "mm", "A4", "")
+	pdf := fpdf.New("P", "mm", "A3", "")
 
 	pdf.SetMargins(marginX, marginY, marginX)
 	pdf.AddPage()
@@ -83,8 +83,8 @@ func GetReportData(c *gin.Context) {
 	pdf.CellFormat(0, 0, today.String()[:10]+" to "+time.Now().String()[:10], "1", 0, "R", false, 0, "")
 	pdf.Ln(5)
 
-	header := [colNumber]string{"Order Id", "Product Name", "Price/Unit", "Quantity", "Amount", "Date", "Status"}
-	colWidth := [colNumber]float64{20.0, 60.0, 25.0, 20.0, 20.0, 25.0, 20.0}
+	header := [colNumber]string{"Order Id", "Product Name", "Price/Unit", "Quantity","Poffer", "Total", "Cou-Disc", "Amount", "Date", "Status"}
+	colWidth := [colNumber]float64{20.0, 80.0, 20.0,20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0}
 
 	pdf.SetFont("Arial", "B", 12)
 	pdf.SetFillColor(200, 200, 200)
@@ -96,7 +96,7 @@ func GetReportData(c *gin.Context) {
 	pdf.SetFont("Arial", "", 9)
 
 	for _, v := range orders {
-		if v.Status == "pending" || v.Status == "delivered" ||v.Status =="shipped" {
+		if v.Status == "pending" || v.Status == "delivered" || v.Status == "shipped" {
 			sales++
 		} else if v.Status == "cancelled" || v.Status == "returned" {
 			salesreturn++
@@ -105,23 +105,29 @@ func GetReportData(c *gin.Context) {
 			amount := v.Quantity * (v.Product.Price - v.Product.Offer)
 			pdf.CellFormat(colWidth[0], lineHt, fmt.Sprintf("%d", v.OrderId), "1", 0, "C", false, 0, "")
 			pdf.CellFormat(colWidth[1], lineHt, v.Product.Name, "1", 0, "C", false, 0, "")
-			pdf.CellFormat(colWidth[2], lineHt, strconv.Itoa(v.Product.Price-v.Product.Offer), "1", 0, "C", false, 0, "")
+			pdf.CellFormat(colWidth[2], lineHt, strconv.Itoa(v.Product.Price), "1", 0, "C", false, 0, "")
 			pdf.CellFormat(colWidth[3], lineHt, strconv.Itoa(v.Quantity), "1", 0, "C", false, 0, "")
+			pdf.CellFormat(colWidth[3], lineHt, strconv.Itoa(v.Product.Offer*v.Quantity), "1", 0, "C", false, 0, "")
 			pdf.CellFormat(colWidth[4], lineHt, strconv.Itoa(amount), "1", 0, "C", false, 0, "")
-			pdf.CellFormat(colWidth[5], lineHt, v.Order.CreatedAt.String()[:10], "1", 0, "C", false, 0, "")
-			pdf.CellFormat(colWidth[6], lineHt, v.Status, "1", 0, "C", false, 0, "")
+			pdf.CellFormat(colWidth[5], lineHt, strconv.Itoa(v.Order.Total-v.Order.Amount), "1", 0, "C", false, 0, "")
+			pdf.CellFormat(colWidth[5], lineHt, strconv.Itoa(v.Order.Amount), "1", 0, "C", false, 0, "")
+			pdf.CellFormat(colWidth[6], lineHt, v.Order.CreatedAt.String()[:10], "1", 0, "C", false, 0, "")
+			pdf.CellFormat(colWidth[7], lineHt, v.Status, "1", 0, "C", false, 0, "")
 			pdf.Ln(-1)
 
 		} else {
 			if time.Now().After(today) {
-				amount := v.Quantity * (v.Product.Price-v.Product.Offer)
-				pdf.CellFormat(colWidth[0], lineHt, fmt.Sprintf("%d", v.OrderId), "1", 0, "C", false, 0, "")
-				pdf.CellFormat(colWidth[1], lineHt, v.Product.Name, "1", 0, "C", false, 0, "")
-				pdf.CellFormat(colWidth[2], lineHt, strconv.Itoa(v.Product.Price-v.Product.Offer), "1", 0, "C", false, 0, "")
-				pdf.CellFormat(colWidth[3], lineHt, strconv.Itoa(v.Quantity), "1", 0, "C", false, 0, "")
-				pdf.CellFormat(colWidth[4], lineHt, strconv.Itoa(amount), "1", 0, "C", false, 0, "")
-				pdf.CellFormat(colWidth[5], lineHt, v.Order.CreatedAt.String()[:10], "1", 0, "C", false, 0, "")
-				pdf.CellFormat(colWidth[6], lineHt, v.Status, "1", 0, "C", false, 0, "")
+				amount := v.Quantity * (v.Product.Price - v.Product.Offer)
+				pdf.CellFormat(colWidth[0], lineHt, fmt.Sprintf("%d", v.OrderId), "1", 0, "C", false, 0, "")////orderid
+				pdf.CellFormat(colWidth[1], lineHt, v.Product.Name, "1", 0, "C", false, 0, "")///////name
+				pdf.CellFormat(colWidth[2], lineHt, strconv.Itoa(v.Product.Price), "1", 0, "C", false, 0, "")/////////price/unit
+				pdf.CellFormat(colWidth[3], lineHt, strconv.Itoa(v.Quantity), "1", 0, "C", false, 0, "")/////////quantity
+				pdf.CellFormat(colWidth[3], lineHt, strconv.Itoa(v.Product.Offer*v.Quantity), "1", 0, "C", false, 0, "")/////////poffer
+				pdf.CellFormat(colWidth[4], lineHt, strconv.Itoa(amount), "1", 0, "C", false, 0, "")///////total
+				pdf.CellFormat(colWidth[5], lineHt, strconv.Itoa(v.Order.Total-v.Order.Amount), "1", 0, "C", false, 0, "")///////////discount
+				pdf.CellFormat(colWidth[5], lineHt, strconv.Itoa(v.Order.Amount), "1", 0, "C", false, 0, "")/////////amount
+				pdf.CellFormat(colWidth[6], lineHt, v.Order.CreatedAt.String()[:10], "1", 0, "C", false, 0, "")//////date
+				pdf.CellFormat(colWidth[7], lineHt, v.Status, "1", 0, "C", false, 0, "")/////////status
 				pdf.Ln(-1)
 			}
 		}
@@ -132,7 +138,7 @@ func GetReportData(c *gin.Context) {
 	pdf.Ln(5)
 	pdf.CellFormat(0, 0, fmt.Sprint("Sales return : ", salesreturn), "1", 0, "R", false, 0, "")
 
-	path := "/home/prajith/Desktop/Bttp/salesReport_" + time.Now().String()[:10] + "_" + Filter + ".pdf"
+	path := "/home/prajith/Desktop/Bttp/salesReport_" + time.Now().String()[:16] + "_" + Filter + ".pdf"
 	if err := pdf.OutputFileAndClose(path); err != nil {
 		c.JSON(401, gin.H{
 			"Code":    401,

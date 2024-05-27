@@ -19,7 +19,7 @@ func UserRoutes(r *gin.RouterGroup) {
  	r.DELETE("/logout", middleware.AuthMiddleware(roleuser), controller.Logout)
 
 	///products
-	r.GET("/products", middleware.AuthMiddleware(roleuser), controller.UserViewProducts)
+	r.GET("/products", controller.UserViewProducts)
 	r.GET("/products/sort", middleware.AuthMiddleware(roleuser), controller.SortProduct)
 	r.GET("/product/search",middleware.AuthMiddleware(roleuser), controller.SearchProduct)
 	r.GET("/product/filter",middleware.AuthMiddleware(roleuser), controller.FilterProduct)
@@ -67,5 +67,9 @@ func UserRoutes(r *gin.RouterGroup) {
 
 	///////Wallet
 	r.GET("/wallet", middleware.AuthMiddleware(roleuser), controller.ShowWallet)
+
+	////////Invoice
+	r.GET("/order/invoice/:ID", middleware.AuthMiddleware(roleuser), controller.CreateInvoice)
+
 
 }

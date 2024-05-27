@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"pkart/database"
 	"pkart/model"
 
@@ -30,6 +29,7 @@ func OrderView(c *gin.Context) {
 
 func OrderDetails(c *gin.Context) {
 	var orderitems []model.OrderItem
+	var payment model.Payment
 	var orderItemShow []gin.H
 	orderId := c.Param("ID")
 	if err := database.DB.Where("order_items.order_id=?", orderId).Preload("Order").Find(&orderitems).Error; err != nil {
@@ -40,7 +40,15 @@ func OrderDetails(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println("orderitems:", orderitems)
+	if error := database.DB.Where("payments.order_id=?", orderId).First(&payment).Error; error != nil {
+		c.JSON(400, gin.H{
+			"status": "Fail",
+			"error":  "Can't find payment details",
+			"code":   400,
+		})
+		return
+	}
+	// fmt.Println("orderitems:", orderitems)
 	var subTotal float64
 	var totalAmount float64
 	// var orderPayment string
@@ -49,14 +57,14 @@ func OrderDetails(c *gin.Context) {
 		totalAmount = float64(val.Order.Amount)
 		// orderPayment = val.Order.OrderPaymentMethod
 		orderItemShow = append(orderItemShow, gin.H{
-			"OrderItemId": val.Id,
-			"product":     val.Product.Name,
-			"quantity":    val.Quantity,
-			"Amount":      val.SubTotal,
-			"status":      val.Status,
-			"orderDate":   val.Order.CreatedAt,
-			"couponcode":  val.Order.CouponId,
-			"addressId":   val.Order.AddressId,
+			"OrderItemId":     val.Id,
+			"product":         val.Product.Name,
+			"quantity":        val.Quantity,
+			"Amount":          val.SubTotal,
+			"Delivery status": val.Status,
+			"orderDate":       val.Order.CreatedAt,
+			"couponcode":      val.Order.CouponId,
+			"addressId":       val.Order.AddressId,
 		})
 	}
 
@@ -66,7 +74,7 @@ func OrderDetails(c *gin.Context) {
 		"totalAmount":     totalAmount,
 		"subTotal":        subTotal,
 		"coupon discount": subTotal - totalAmount,
-		// "paymentMethod": orderPayment,
+		"paymentStatus":   payment.Status,
 	})
 }
 

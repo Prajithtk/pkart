@@ -8,14 +8,16 @@ import (
 
 type Users struct {
 	gorm.Model
-	Name     string    `json:"name"`
-	Email    string    `json:"email" gorm:"unique"`
-	Password string    `json:"password"`
-	Phone    string    `json:"phone" gorm:"unique"`
-	Status   string    `json:"status"`
-	Gender   string    `json:"gender"`
-	Wallet   int       `json:"wallet" gorm:"default:0"`          //not
-	Address  []Address `json:"address" gorm:"foreignKey:UserId"` //not
+	Name        string    `json:"name"`
+	Email       string    `json:"email" gorm:"unique"`
+	Password    string    `json:"password"`
+	Phone       string    `json:"phone" gorm:"unique"`
+	Status      string    `json:"status"`
+	Gender      string    `json:"gender"`
+	Wallet      int       `json:"wallet" gorm:"default:0"` //not
+	ReferalCode string    `json:"referalcode"`
+	ReferalsId	[]uint
+	Address     []Address `json:"address" gorm:"foreignKey:UserId"` //not
 	// IsBlocked bool   `json:"isblocked" gorm:"default:false"`
 }
 
@@ -46,18 +48,19 @@ type Cart struct {
 }
 
 type Orders struct {
-	Id         int `gorm:"primaryKey"`
-	UserId     uint
-	User       Users
-	AddressId  uint
-	Address    Address
-	CouponCode string `json:"orderCoupon"`
-	CouponId   uint
-	Coupon     Coupons
-	Total      int
-	Amount     int
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	Id             int `gorm:"primaryKey"`
+	UserId         uint
+	User           Users
+	AddressId      uint
+	Address        Address
+	CouponCode     string `json:"orderCoupon"`
+	CouponId       uint
+	Coupon         Coupons
+	ShippingCharge int
+	Total          int
+	Amount         int
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type OrderItem struct {

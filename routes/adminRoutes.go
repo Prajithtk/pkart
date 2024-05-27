@@ -43,4 +43,8 @@ func AdminRoutes(r *gin.RouterGroup) {
 	//////report
 	r.GET("/sales/report", middleware.AuthMiddleware(RoleAdmin), controller.SalesReport)
 	r.GET("/report", middleware.AuthMiddleware(RoleAdmin), controller.GetReportData)
+
+	/////BestSelling
+	r.GET("/bestselling", controller.BestSelling)
+
 }

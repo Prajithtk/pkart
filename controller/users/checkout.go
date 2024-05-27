@@ -98,6 +98,11 @@ func CartCheckOut(c *gin.Context) {
 			return
 		}
 	}
+	var ShippingCharge int
+	if order.Amount < 1000 {
+		ShippingCharge = 40
+		order.Amount += ShippingCharge
+	}
 		if req.Payment == "COD" {
 			if order.Amount < 1000 {
 				c.JSON(401, gin.H{
@@ -112,6 +117,7 @@ func CartCheckOut(c *gin.Context) {
 	num := helper.GenerateInt()
 	numb, _ := strconv.Atoi(num)
 	order.Id, _ = strconv.Atoi(num)
+	order.ShippingCharge = ShippingCharge
 
 	database.DB.Create(&order)
 
