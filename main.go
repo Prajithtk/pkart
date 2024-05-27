@@ -19,6 +19,7 @@ func main() {
 	fmt.Println("Welcome to Pkart")
 
 	router := gin.Default()
+	router.LoadHTMLGlob("templates/*")
 
 	admin := router.Group("/admin")
 	routes.AdminRoutes(admin)

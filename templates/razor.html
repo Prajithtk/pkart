@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Payment</title>
+</head>
+<body>
+        <div style="margin-left: 589px; margin-top: 300px;"><button style="padding: 27px; font-size: 18px; background-color: rgb(63, 63, 179);" id="rzp-button1">Pay with Razorpay</button></div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+var options = {
+    "key": "{{.Key}}", 
+    "amount": "{{.Amount}}", 
+    "currency": "INR",
+    "name": "Brico Ltd",
+    "description": "{{.Product}}",
+    "image": "https://rohith-001.github.io/Ecom-bootstrap/src/image/logo.png",
+
+    "order_id": "{{.Order}}",
+  
+    "handler": function (response){
+       var payment = response.razorpay_payment_id;
+        var order = response.razorpay_order_id;
+        var signature = response.razorpay_signature;
+        SendGin(payment,order,signature)
+    },
+    "prefill": {
+        "name": "{{.Name}}",
+        "email": "{{.Email}}",
+        "contact": "{{.Phone}}"
+    },
+    "notes": {
+        "address": "Razorpay Corporate Office"
+    },
+    "theme": {
+        "color": "#3399cc"
+    }
+};
+var rzp1 = new Razorpay(options);
+rzp1.on('payment.failed', function (response){
+        alert(response.error.code);
+        alert(response.error.description);
+        alert(response.error.source);
+        alert(response.error.step);
+        alert(response.error.reason);
+        alert(response.error.metadata.order_id);
+        alert(response.error.metadata.payment_id);
+});
+function SendGin(payment,order,signature){
+fetch('http://localhost:8080/user/payment/confirm', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        PaymentID : payment ,  
+        OrderID : order ,    
+        Signature : signature      
+    })
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error =>console.log("Error",error));
+};
+document.getElementById('rzp-button1').onclick = function(e){
+    rzp1.open();
+    e.preventDefault();
+}
+</script>
+</body>
+</html>

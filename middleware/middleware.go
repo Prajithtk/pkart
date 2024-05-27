@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"net/http"
 	"os"
 	"time"
 
@@ -16,49 +15,64 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-func JwtToken(c *gin.Context, id uint, email string, role string) {
+func JwtToken(c *gin.Context, id uint, email string, role string) (string, error) {
 	claims := Claims{
 		ID:    id,
 		Email: email,
 		Role:  role,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 2).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * 240).Unix(),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to sign token"})
-		return
+		return "", err
 	}
-	c.JSON(http.StatusOK, gin.H{"token": signedToken})
+	return signedToken, nil
 }
 
 func AuthMiddleware(requiredRole string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenstring := c.GetHeader("Authorization")
-		if tokenstring == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token not provided"})
+		signedToken, err := c.Cookie("JwtToken" + requiredRole)
+		// fmt.Println(signedToken)
+		if err != nil {
+			c.JSON(401, gin.H{
+				"Status":  "Unauthorized",
+				"Code":    401,
+				"Message": "Can't find cookie try again!!!!!!",
+				"Data":    gin.H{},
+			})
 			c.Abort()
 			return
 		}
 
 		claims := &Claims{}
-		token, err := jwt.ParseWithClaims(tokenstring, claims, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(signedToken, claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("SECRET_KEY")), nil
 		})
 		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.JSON(401, gin.H{
+				"Status":  "Unauthorized",
+				"Code":    401,
+				"Message": "Invalid token",
+				"Data":    gin.H{},
+			})
 			c.Abort()
 		}
 		if claims.Role != requiredRole {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "No permission"})
+			c.JSON(403, gin.H{
+				"Status":  "Forbidden",
+				"Code":    401,
+				"Message": "No permission",
+				"Data":    gin.H{},
+			})
 			c.Abort()
 		}
 
 		c.Set("userid", claims.ID)
-		// c.Set("useremail", claims.Email)
+		c.Set("useremail", claims.Email)
 		c.Next()
 	}
 }
