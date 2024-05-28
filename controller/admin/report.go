@@ -102,30 +102,30 @@ func GetReportData(c *gin.Context) {
 			salesreturn++
 		}
 		if today == time.Now() {
-			amount := v.Quantity * (v.Product.Price - v.Product.Offer)
+			totamount := v.Quantity * (v.Product.Price - v.Product.Offer)
 			pdf.CellFormat(colWidth[0], lineHt, fmt.Sprintf("%d", v.OrderId), "1", 0, "C", false, 0, "")
 			pdf.CellFormat(colWidth[1], lineHt, v.Product.Name, "1", 0, "C", false, 0, "")
 			pdf.CellFormat(colWidth[2], lineHt, strconv.Itoa(v.Product.Price), "1", 0, "C", false, 0, "")
 			pdf.CellFormat(colWidth[3], lineHt, strconv.Itoa(v.Quantity), "1", 0, "C", false, 0, "")
 			pdf.CellFormat(colWidth[3], lineHt, strconv.Itoa(v.Product.Offer*v.Quantity), "1", 0, "C", false, 0, "")
-			pdf.CellFormat(colWidth[4], lineHt, strconv.Itoa(amount), "1", 0, "C", false, 0, "")
-			pdf.CellFormat(colWidth[5], lineHt, strconv.Itoa(v.Order.Total-v.Order.Amount), "1", 0, "C", false, 0, "")
-			pdf.CellFormat(colWidth[5], lineHt, strconv.Itoa(v.Order.Amount), "1", 0, "C", false, 0, "")
+			pdf.CellFormat(colWidth[4], lineHt, strconv.Itoa(totamount), "1", 0, "C", false, 0, "")
+			pdf.CellFormat(colWidth[5], lineHt, strconv.Itoa(int(v.SubTotal)-int(v.Amount)), "1", 0, "C", false, 0, "")
+			pdf.CellFormat(colWidth[5], lineHt, strconv.Itoa(int(v.Amount)), "1", 0, "C", false, 0, "")
 			pdf.CellFormat(colWidth[6], lineHt, v.Order.CreatedAt.String()[:10], "1", 0, "C", false, 0, "")
 			pdf.CellFormat(colWidth[7], lineHt, v.Status, "1", 0, "C", false, 0, "")
 			pdf.Ln(-1)
 
 		} else {
 			if time.Now().After(today) {
-				amount := v.Quantity * (v.Product.Price - v.Product.Offer)
+				totamount := v.Quantity * (v.Product.Price - v.Product.Offer)
 				pdf.CellFormat(colWidth[0], lineHt, fmt.Sprintf("%d", v.OrderId), "1", 0, "C", false, 0, "")////orderid
 				pdf.CellFormat(colWidth[1], lineHt, v.Product.Name, "1", 0, "C", false, 0, "")///////name
 				pdf.CellFormat(colWidth[2], lineHt, strconv.Itoa(v.Product.Price), "1", 0, "C", false, 0, "")/////////price/unit
 				pdf.CellFormat(colWidth[3], lineHt, strconv.Itoa(v.Quantity), "1", 0, "C", false, 0, "")/////////quantity
 				pdf.CellFormat(colWidth[3], lineHt, strconv.Itoa(v.Product.Offer*v.Quantity), "1", 0, "C", false, 0, "")/////////poffer
-				pdf.CellFormat(colWidth[4], lineHt, strconv.Itoa(amount), "1", 0, "C", false, 0, "")///////total
-				pdf.CellFormat(colWidth[5], lineHt, strconv.Itoa(v.Order.Total-v.Order.Amount), "1", 0, "C", false, 0, "")///////////discount
-				pdf.CellFormat(colWidth[5], lineHt, strconv.Itoa(v.Order.Amount), "1", 0, "C", false, 0, "")/////////amount
+				pdf.CellFormat(colWidth[4], lineHt, strconv.Itoa(totamount), "1", 0, "C", false, 0, "")///////total
+				pdf.CellFormat(colWidth[5], lineHt, strconv.Itoa(int(v.SubTotal)-int(v.Amount)), "1", 0, "C", false, 0, "")///////////discount
+				pdf.CellFormat(colWidth[5], lineHt, strconv.Itoa(int(v.Amount)), "1", 0, "C", false, 0, "")/////////amount
 				pdf.CellFormat(colWidth[6], lineHt, v.Order.CreatedAt.String()[:10], "1", 0, "C", false, 0, "")//////date
 				pdf.CellFormat(colWidth[7], lineHt, v.Status, "1", 0, "C", false, 0, "")/////////status
 				pdf.Ln(-1)

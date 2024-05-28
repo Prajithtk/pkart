@@ -145,8 +145,8 @@ func CancelOrder(c *gin.Context) {
 			}
 		}
 		if couponRemove.Min > int(orderAmount.Total) {
-			orderAmount.Total += couponRemove.Value
-			orderAmount.Total -= int(orderItem.SubTotal)
+			orderAmount.Amount += couponRemove.Value
+			orderAmount.Amount -= int(orderItem.SubTotal)
 			orderAmount.CouponCode = ""
 		}
 		if err := tx.Save(&orderAmount).Error; err != nil {
@@ -168,7 +168,7 @@ func CancelOrder(c *gin.Context) {
 			tx.Rollback()
 			return
 		} else {
-			walletUpdate.Amount += int(orderItem.SubTotal)
+			walletUpdate.Amount += int(orderItem.Amount)
 			tx.Save(&walletUpdate)
 		}
 		if err := tx.Commit().Error; err != nil {

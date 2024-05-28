@@ -11,6 +11,8 @@ var RoleAdmin = "Admin"
 
 func AdminRoutes(r *gin.RouterGroup) {
 	r.POST("/login", controller.AdminLogin)
+	r.GET("/", middleware.AuthMiddleware(RoleAdmin), controller.AdminPage)
+
 
 	/////////users
 	r.GET("/users", middleware.AuthMiddleware(RoleAdmin), controller.ListUsers)
@@ -35,6 +37,8 @@ func AdminRoutes(r *gin.RouterGroup) {
 	r.POST("/images", middleware.AuthMiddleware(RoleAdmin), controller.ProductImage)
 	r.PATCH("/product/:ID", middleware.AuthMiddleware(RoleAdmin), controller.EditProducts)
 	r.DELETE("/product/:ID", middleware.AuthMiddleware(RoleAdmin), controller.DeleteProducts)
+	r.GET("/product/search",middleware.AuthMiddleware(roleuser), controller.SearchProductAd)
+	r.GET("/product/paginate", controller.Paginate)
 
 	///////Orders
 	r.GET("/orders", middleware.AuthMiddleware(RoleAdmin), controller.ShowOrders)

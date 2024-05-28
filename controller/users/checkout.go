@@ -104,11 +104,11 @@ func CartCheckOut(c *gin.Context) {
 		order.Amount += ShippingCharge
 	}
 		if req.Payment == "COD" {
-			if order.Amount < 1000 {
+			if order.Amount > 1000 {
 				c.JSON(401, gin.H{
 					"Status":  "Error!",
 					"Code":    401,
-					"Message": "Minimum order amount for Cash On Delivery is 1000",
+					"Message": "Maximum order amount for Cash On Delivery is 1000",
 					"Data":    gin.H{},
 				})
 				return
@@ -120,13 +120,13 @@ func CartCheckOut(c *gin.Context) {
 	order.ShippingCharge = ShippingCharge
 
 	database.DB.Create(&order)
-
 	for _, list := range cartItems {
 		orderitem := model.OrderItem{
 			OrderId:   uint(order.Id),
 			ProductId: list.ProductId,
 			Quantity:  list.Quantity,
 			SubTotal: float64(list.Product.Price-(list.Product.Offer))*float64(list.Quantity),
+			Amount: (float64(list.Product.Price-(list.Product.Offer))*float64(list.Quantity))-(float64(list.Product.Price-(list.Product.Offer))*float64(list.Quantity))*float64(coupon.Value)/100,
 			Status:    "pending",
 		}
 		if err := database.DB.Create(&orderitem); err.Error != nil {

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"pkart/database"
 	"pkart/model"
 
@@ -29,9 +28,8 @@ func BestSelling(c *gin.Context) {
 		}
 		for _, v := range BestProduct {
 			BestList = append(BestList, gin.H{
-				"productName":  v.Name,
-				"salesVolume":  v.Quantity,
-				"averagePrice": fmt.Sprintf("%.2f", float64(v.Price)/float64(v.Quantity)),
+				"productName": v.Name,
+				"salesVolume": v.Quantity,
 			})
 		}
 

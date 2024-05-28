@@ -8,16 +8,16 @@ import (
 
 type Users struct {
 	gorm.Model
-	Name        string    `json:"name"`
-	Email       string    `json:"email" gorm:"unique"`
-	Password    string    `json:"password"`
-	Phone       string    `json:"phone" gorm:"unique"`
-	Status      string    `json:"status"`
-	Gender      string    `json:"gender"`
-	Wallet      int       `json:"wallet" gorm:"default:0"` //not
-	ReferalCode string    `json:"referalcode"`
-	ReferalsId	[]uint
-	Address     []Address `json:"address" gorm:"foreignKey:UserId"` //not
+	Name        string `json:"name"`
+	Email       string `json:"email" gorm:"unique"`
+	Password    string `json:"password"`
+	Phone       string `json:"phone" gorm:"unique"`
+	Status      string `json:"status"`
+	Gender      string `json:"gender"`
+	Wallet      int    `json:"wallet" gorm:"default:0"` //not
+	ReferalCode string	`json:"referalcode"`
+	// ReferalsId	[]uint
+	Address []Address `json:"address" gorm:"foreignKey:UserId"` //not
 	// IsBlocked bool   `json:"isblocked" gorm:"default:false"`
 }
 
@@ -71,6 +71,7 @@ type OrderItem struct {
 	Product      Products
 	Quantity     int
 	SubTotal     float64
+	Amount       float64
 	Status       string
 	CancelReason string
 }

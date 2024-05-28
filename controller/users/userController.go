@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"pkart/database"
+	"pkart/helper"
 	"pkart/middleware"
 	"pkart/model"
 	onetp "pkart/onetp"
@@ -38,6 +39,8 @@ func UserSignUp(c *gin.Context) {
 	UserInfo.Password = string(hashedPassword)
 
 	UserInfo.Status = "Active"
+	Code, _ := helper.GenerateRandomAlphanumericCode(6)
+	UserInfo.ReferalCode = Code
 
 	otp := onetp.GenerateOTP(6)
 	newOtp := model.Otp{
@@ -62,17 +65,17 @@ func OtpSignUp(c *gin.Context) {
 		return
 	}
 	var notp model.Otp
-	oerr := database.DB.Where("Email=?", UserInfo.Email).First(&notp)
+	oerr := database.DB.Where("Email=?", UserInfo.Email).Find(&notp)
 	if oerr.Error != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"success": "false", "message": "failed to fetch OTP"})
 		return
 	}
 
-	currentTime := time.Now()
-	if currentTime.After(notp.Expires) {
-		c.JSON(http.StatusUnauthorized, gin.H{"success": "false", "message": "OTP expired"})
-		return
-	}
+	// currentTime := time.Now()
+	// if currentTime.After(notp.Expires) {
+	// 	c.JSON(http.StatusUnauthorized, gin.H{"success": "false", "message": "OTP expired"})
+	// 	return
+	// }
 
 	if otp.Otp != notp.Otp {
 		c.JSON(http.StatusBadRequest, gin.H{"success": "false", "message": "invalid otp"})
@@ -87,6 +90,38 @@ func OtpSignUp(c *gin.Context) {
 	} else {
 		c.JSON(200, gin.H{"success": "true", "message": "user created successfully"})
 	}
+	var userFetchData model.Users
+	if err := database.DB.First(&userFetchData, "email=?", UserInfo.Email).Error; err != nil {
+		c.JSON(400, gin.H{
+			"status": "Fail",
+			"error":  "failed to fetch user details for wallet",
+			"code":   400,
+		})
+		return
+	}
+	var userFetch model.Users
+	if UserInfo.ReferalCode != ""{
+
+		if err := database.DB.First(&userFetch, "referal_code=?", UserInfo.ReferalCode).Error; err != nil {
+			c.JSON(400, gin.H{
+				"status": "Fail",
+				"error":  "failed to fetch user details for wallet",
+				"code":   400,
+			})
+			return
+		}
+	}
+	var wallet model.Wallet
+	wallet.UserId =  userFetchData.ID
+	wallet.Amount = 50
+	database.DB.Create(&wallet)
+
+	
+	c.SetCookie("sessionId", "", -1, "/", "", false, false)
+	c.JSON(201, gin.H{
+		"status":  "Success",
+		"message": "user created successfully",
+	})
 }
 
 func ResendOtp(c *gin.Context) {
@@ -141,7 +176,7 @@ func UserLogin(c *gin.Context) {
 		c.JSON(403, gin.H{"success": "false", "message": "failed to create token"})
 		return
 	}
-	
+
 	c.SetCookie("JwtTokenUser", token, int((time.Hour * 100).Seconds()), "/", "localhost", false, false)
 	c.JSON(200, gin.H{
 		"Status":  "Success!",
@@ -637,5 +672,3 @@ func Logout(c *gin.Context) {
 // 		return
 // 	}
 // }
-
-

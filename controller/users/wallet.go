@@ -16,7 +16,6 @@ func ShowWallet(c *gin.Context) {
 	// Logged := c.MustGet("Id").(uint)
 	userId := c.GetUint("userid")
 
-
 	var wallet model.Wallet
 
 	if err := database.DB.First(&wallet, "User_Id=?", userId).Error; err != nil {
@@ -35,4 +34,7 @@ func ShowWallet(c *gin.Context) {
 		"Message": "Wallet found!",
 		"Data":    gin.H{"Balance": wallet.Amount},
 	})
+
+	// code,_ :=helper.GenerateRandomAlphanumericCode(8)
+	// fmt.Println("code:",code)
 }

@@ -44,7 +44,7 @@ func CreateInvoice(c *gin.Context) {
 	var Discount float64
 	database.DB.First(&order, orderId)
 
-	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf := gofpdf.New("P", "mm", "A3", "")
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 20)
 	pdf.Ln(5)
@@ -75,27 +75,32 @@ func CreateInvoice(c *gin.Context) {
 
 	// pdf.Image("./assets/logo.png", 160, 10, 30, 20, false, "", 0, "")
 	pdf.SetXY(10, 20)
-	pdf.CellFormat(170, 30, "pkart", "", 0, "R", false, 0, "")
+	pdf.CellFormat(250, 30, "pkart", "", 0, "R", false, 0, "")
 	pdf.SetFont("Arial", "", 12)
-	pdf.CellFormat(12, 40, "dilka , rashka del", "", 0, "R", false, 0, "")
-	pdf.CellFormat(12, 50, "15th floor ,Ph: +324 36545", "", 0, "R", false, 0, "")
+	pdf.CellFormat(12, 40, "Crystal Plaza , Calicut road", "", 0, "R", false, 0, "")
+	pdf.CellFormat(12, 50, "15th floor ,Ph: +95 365452", "", 0, "R", false, 0, "")
 	pdf.Ln(60)
 
 	pdf.SetFillColor(220, 220, 220)
 	pdf.CellFormat(20, 10, "No.", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(70, 10, "Item Name", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(75, 10, "Item Name", "1", 0, "C", true, 0, "")
 	pdf.CellFormat(30, 10, "Quantity", "1", 0, "C", true, 0, "")
 	pdf.CellFormat(30, 10, "Product Price", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(40, 10, "Total Price", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(40, 10, "Offer Price", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(40, 10, "Coup-Disc", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(40, 10, "Net Price", "1", 0, "C", true, 0, "")
+	
 	pdf.Ln(10)
 
 	totalAmount := 0.0
 	for i, order := range orderItem {
 		pdf.CellFormat(20, 10, fmt.Sprintf("%d", i+1), "1", 0, "C", false, 0, "")
-		pdf.CellFormat(70, 10, order.Product.Name, "1", 0, "", false, 0, "")
+		pdf.CellFormat(75, 10, order.Product.Name, "1", 0, "", false, 0, "")
 		pdf.CellFormat(30, 10, fmt.Sprintf("%d", order.Quantity), "1", 0, "C", false, 0, "")
 		pdf.CellFormat(30, 10, fmt.Sprintf("%d", order.Product.Price), "1", 0, "R", false, 0, "")
 		pdf.CellFormat(40, 10, fmt.Sprintf("%.2f", order.SubTotal), "1", 0, "R", false, 0, "")
+		pdf.CellFormat(40, 10, fmt.Sprintf("%.2f",order.SubTotal - order.Amount), "1", 0, "R", false, 0, "")
+		pdf.CellFormat(40, 10, fmt.Sprintf("%.2f",order.Amount), "1", 0, "R", false, 0, "")
 		pdf.Ln(10)
 		totalAmount += float64(order.SubTotal)
 	}
@@ -105,22 +110,21 @@ func CreateInvoice(c *gin.Context) {
 	Discount = totalAmount - float64(order.Amount)
 	totalAmount -= float64(Discount)
 	if Discount > 0 {
-		pdf.CellFormat(150, 10, "Discount:", "1", 0, "R", true, 0, "")
+		pdf.CellFormat(235, 10, "Discount:", "1", 0, "R", true, 0, "")
 		pdf.CellFormat(40, 10, fmt.Sprintf("%2.f", Discount), "1", 0, "R", true, 0, "")
 		pdf.Ln(10)
 	}
 	if order.ShippingCharge > 0 {
 		totalAmount += float64(order.ShippingCharge)
-		pdf.CellFormat(150, 10, "Shipping charge:", "1", 0, "R", true, 0, "")
+		pdf.CellFormat(235, 10, "Shipping charge:", "1", 0, "R", true, 0, "")
 		pdf.CellFormat(40, 10, fmt.Sprintf("%d", order.ShippingCharge), "1", 0, "R", true, 0, "")
 		pdf.Ln(10)
 	}
 	Discount = 0
-	pdf.CellFormat(150, 10, "Total Amount: ", "1", 0, "R", true, 0, "")
+	pdf.CellFormat(235, 10, "Total Amount: ", "1", 0, "R", true, 0, "")
 	pdf.CellFormat(40, 10, fmt.Sprintf("%.2f", totalAmount), "1", 0, "R", true, 0, "")
 
 	pdfPath := "/home/prajith/Desktop/Bttp/Invoice.pdf"
-	// pdfPath := "C:/Users/nuhma/Desktop/Week_Task/1st_project/invoice.pdf"
 	if err := pdf.OutputFileAndClose(pdfPath); err != nil {
 		c.JSON(500, gin.H{
 			"status": "Fail",

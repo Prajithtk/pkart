@@ -12,6 +12,29 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func AdminPage(c *gin.Context) {
+	var totalSales []model.Orders
+	var totalAmount float64
+	var totalOrder int
+	if err := database.DB.Find(&totalSales).Error; err != nil {
+		c.JSON(400, gin.H{
+			"status":  "fail",
+			"message": err.Error(),
+			"code":    400,
+		})
+	}
+	for _, v := range totalSales {
+		totalAmount += float64(v.Amount)
+		totalOrder += 1
+	}
+	c.JSON(200, gin.H{
+		"status":  "success",
+		"message": "Welcome admin page",
+		"data":    gin.H{"sales": totalAmount, "orderCount": totalOrder},
+		"code":    200,
+	})
+}
+
 var Product model.Products
 var Ida, _ = strconv.Atoi(os.Getenv("ID"))
 var Email = os.Getenv("ADMIN")
