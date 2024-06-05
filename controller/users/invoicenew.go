@@ -73,7 +73,6 @@ func CreateInvoice(c *gin.Context) {
 		break
 	}
 
-	// pdf.Image("./assets/logo.png", 160, 10, 30, 20, false, "", 0, "")
 	pdf.SetXY(10, 20)
 	pdf.CellFormat(250, 30, "pkart", "", 0, "R", false, 0, "")
 	pdf.SetFont("Arial", "", 12)

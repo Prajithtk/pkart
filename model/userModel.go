@@ -14,10 +14,10 @@ type Users struct {
 	Phone       string `json:"phone" gorm:"unique"`
 	Status      string `json:"status"`
 	Gender      string `json:"gender"`
-	Wallet      int    `json:"wallet" gorm:"default:0"` //not
+	// Wallet      int    `json:"wallet" gorm:"default:0"` //not
 	ReferalCode string	`json:"referalcode"`
 	// ReferalsId	[]uint
-	Address []Address `json:"address" gorm:"foreignKey:UserId"` //not
+	// Address []Address `json:"address" gorm:"foreignKey:UserId"` //not
 	// IsBlocked bool   `json:"isblocked" gorm:"default:false"`
 }
 
@@ -100,7 +100,7 @@ type Payment struct {
 
 type Wallet struct {
 	Id     uint `gorm:"primaryKey"`
-	UserId uint
+	UserId uint	`gorm:"unique"`
 	Amount int
 }
 

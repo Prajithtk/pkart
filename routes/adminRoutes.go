@@ -38,14 +38,14 @@ func AdminRoutes(r *gin.RouterGroup) {
 	r.PATCH("/product/:ID", middleware.AuthMiddleware(RoleAdmin), controller.EditProducts)
 	r.DELETE("/product/:ID", middleware.AuthMiddleware(RoleAdmin), controller.DeleteProducts)
 	r.GET("/product/search",middleware.AuthMiddleware(roleuser), controller.SearchProductAd)
-	r.GET("/product/paginate", controller.Paginate)
+	r.GET("/product/paginate", controller.PaginateProducts)
 
 	///////Orders
 	r.GET("/orders", middleware.AuthMiddleware(RoleAdmin), controller.ShowOrders)
 	r.GET("/order/status", middleware.AuthMiddleware(RoleAdmin), controller.OrdersStatusChange)
 
 	//////report
-	r.GET("/sales/report", middleware.AuthMiddleware(RoleAdmin), controller.SalesReport)
+	// r.GET("/sales/report", middleware.AuthMiddleware(RoleAdmin), controller.SalesReport)
 	r.GET("/report", middleware.AuthMiddleware(RoleAdmin), controller.GetReportData)
 
 	/////BestSelling

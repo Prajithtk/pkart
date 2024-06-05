@@ -25,9 +25,9 @@ func ShowProfile(c *gin.Context) {
 		"Phone":  userProfile.Phone,
 		"Gender": userProfile.Gender,
 	}
-	if len(userProfile.Address) > 0 {
-		response["Address"] = userProfile.Address
-	}
+	// if len(userProfile.Address) > 0 {
+	// 	response["Address"] = userProfile.Address
+	// }
 	c.JSON(200, gin.H{
 		"success": "true",
 		"message": "profile details are:",
