@@ -8,14 +8,14 @@ import (
 
 type Users struct {
 	gorm.Model
-	Name        string `json:"name"`
-	Email       string `json:"email" gorm:"unique"`
-	Password    string `json:"password"`
-	Phone       string `json:"phone" gorm:"unique"`
-	Status      string `json:"status"`
-	Gender      string `json:"gender"`
+	Name     string `json:"name"`
+	Email    string `json:"email" gorm:"unique"`
+	Password string `json:"password"`
+	Phone    string `json:"phone" gorm:"unique"`
+	Status   string `json:"status"`
+	Gender   string `json:"gender"`
 	// Wallet      int    `json:"wallet" gorm:"default:0"` //not
-	ReferalCode string	`json:"referalcode"`
+	ReferalCode string `json:"referalcode"`
 	// ReferalsId	[]uint
 	// Address []Address `json:"address" gorm:"foreignKey:UserId"` //not
 	// IsBlocked bool   `json:"isblocked" gorm:"default:false"`
@@ -30,6 +30,7 @@ type Address struct {
 	Landmark     string `json:"landmark"`
 	PinCode      string `json:"pincode"`
 	UserId       uint   `json:"userid"`
+	User         Users
 }
 
 type Otp struct {
@@ -100,7 +101,7 @@ type Payment struct {
 
 type Wallet struct {
 	Id     uint `gorm:"primaryKey"`
-	UserId uint	`gorm:"unique"`
+	UserId uint `gorm:"unique"`
 	Amount int
 }
 
