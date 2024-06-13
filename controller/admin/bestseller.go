@@ -8,6 +8,7 @@ import (
 )
 
 func BestSelling(c *gin.Context) {
+	
 	var BestProduct []model.Products
 	var BestList []gin.H
 	query := c.Query("type")
