@@ -28,8 +28,8 @@ func AdminRoutes(r *gin.RouterGroup) {
 	/////////coupons
 	r.POST("/coupon", middleware.AuthMiddleware(RoleAdmin), controller.AddCoupon)
 	r.GET("/coupons", middleware.AuthMiddleware(RoleAdmin), controller.ViewCoupon)
-	r.PATCH("/coupon", middleware.AuthMiddleware(RoleAdmin), controller.ViewCoupon)
-	r.DELETE("/coupon", middleware.AuthMiddleware(RoleAdmin), controller.ViewCoupon)
+	r.PATCH("/coupon/:ID", middleware.AuthMiddleware(RoleAdmin), controller.EditCoupon)
+	r.DELETE("/coupon/:ID", middleware.AuthMiddleware(RoleAdmin), controller.DeleteCoupon)
 
 	/////////Products
 	r.GET("/products", middleware.AuthMiddleware(RoleAdmin), controller.ViewProducts)
@@ -37,8 +37,8 @@ func AdminRoutes(r *gin.RouterGroup) {
 	r.POST("/images", middleware.AuthMiddleware(RoleAdmin), controller.ProductImage)
 	r.PATCH("/product/:ID", middleware.AuthMiddleware(RoleAdmin), controller.EditProducts)
 	r.DELETE("/product/:ID", middleware.AuthMiddleware(RoleAdmin), controller.DeleteProducts)
-	r.GET("/product/search",middleware.AuthMiddleware(roleuser), controller.SearchProductAd)
-	r.GET("/product/paginate", controller.PaginateProducts)
+	r.GET("/product/search", middleware.AuthMiddleware(roleuser), controller.SearchProductAd)
+	r.GET("/product/paginate", middleware.AuthMiddleware(RoleAdmin), controller.PaginateProducts)
 
 	///////Orders
 	r.GET("/orders", middleware.AuthMiddleware(RoleAdmin), controller.ShowOrders)
@@ -49,6 +49,6 @@ func AdminRoutes(r *gin.RouterGroup) {
 	r.GET("/report", middleware.AuthMiddleware(RoleAdmin), controller.GetReportData)
 
 	/////BestSelling
-	r.GET("/bestselling", controller.BestSelling)
+	r.GET("/bestselling", middleware.AuthMiddleware(RoleAdmin), controller.BestSelling)
 
 }

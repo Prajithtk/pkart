@@ -50,16 +50,16 @@ func UserSignUp(c *gin.Context) {
 		})
 		return
 	}
-	cerr := database.DB.Where("referal_code", UserInfo.ReferalCode).First(&CommisionUser)
-	if cerr != nil {
-		c.JSON(200, gin.H{
-			"Status":  "success",
-			"Code":    200,
-			"Message": "found commission user",
-			"Data":    gin.H{},
-		})
-		// return
-	}
+	// cerr := database.DB.Where("referal_code", UserInfo.ReferalCode).First(&CommisionUser)
+	// if cerr != nil {
+	// 	c.JSON(200, gin.H{
+	// 		"Status":  "success",
+	// 		"Code":    200,
+	// 		"Message": "found commission user",
+	// 		"Data":    gin.H{},
+	// 	})
+	// 	// return
+	// }
 	UserInfo.Password = string(hashedPassword)
 	UserInfo.Status = "Active"
 	Code, _ := helper.GenerateRandomAlphanumericCode(6)
@@ -203,17 +203,18 @@ func OtpSignUp(c *gin.Context) {
 	var refFetch model.Users
 	var wallet model.Wallet
 	// fmt.Println("commcode", CommisionUser)
+	// var list []gin.H
 	if UserInfo.ReferalCode != "" {
 
-		if err := database.DB.First(&refFetch, "referal_code=?", CommisionUser.ReferalCode).Error; err != nil {
-			c.JSON(400, gin.H{
-				"status":  "failed",
-				"Code":    400,
-				"Message": "failed to fetch user details for referal code",
-				"Data":    gin.H{},
-			})
-			return
-		}
+		// if err := database.DB.First(&refFetch, "referal_code=?", CommisionUser.ReferalCode).Error; err != nil {
+		// 	list = append(list, gin.H{
+		// 		"status": "failed",
+		// 		// "Code":    400,
+		// 		"Message": "failed to fetch user details for referal code",
+		// 		// "Data":    gin.H{},
+		// 	})
+		// 	return
+		// }
 		wallet.Amount = 50
 		wallet.UserId = userFetchData.ID
 		fmt.Println(refFetch)
@@ -231,7 +232,9 @@ func OtpSignUp(c *gin.Context) {
 		"Status":  "success",
 		"Code":    201,
 		"message": "user created successfully",
-		"Data":    gin.H{},
+		"Data": gin.H{
+			// "Referal": list,
+		},
 	})
 	UserInfo = model.Users{}
 }
@@ -281,8 +284,6 @@ func ResendOtp(c *gin.Context) {
 	})
 }
 
-
-
 func UserLogin(c *gin.Context) {
 	var userDetails model.Users
 	err := c.ShouldBindJSON(&userDetails)
@@ -304,6 +305,7 @@ func UserLogin(c *gin.Context) {
 			"Message": "your account is blocked",
 			"Data":    gin.H{},
 		})
+		return
 	}
 	if perror.Error != nil {
 		c.JSON(401, gin.H{

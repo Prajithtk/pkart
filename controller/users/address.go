@@ -141,7 +141,7 @@ func ListAddress(c *gin.Context) {
 		"Code":    200,
 		"Message": "address details are : ",
 		"Data": gin.H{
-			"categories": list,
+			"Addresses": list,
 		},
 	})
 }

@@ -31,7 +31,6 @@ type Address struct {
 	Landmark     string `json:"landmark"`
 	PinCode      string `json:"pincode"`
 	UserId       uint   `json:"userid"`
-	// User         Users
 }
 
 type Otp struct {

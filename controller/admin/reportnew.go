@@ -267,7 +267,8 @@ func GetReportData(c *gin.Context) {
 	pdf.CellFormat(0, 0, fmt.Sprint("Total discount : ", totalDiscount), "1", 0, "R", false, 0, "")
 
 	// Generate PDF file
-	path := fmt.Sprintf("/home/prajith/Desktop/Bttp/salesReport_%s_%s.pdf", time.Now().Format("20060102_150405"), Filter)
+
+	path := fmt.Sprintf("/home/ubuntu/pkart_1/salesReport_%s_%s.pdf", time.Now().Format("20060102_150405"), Filter)
 	if err := pdf.OutputFileAndClose(path); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"Status":  "error",

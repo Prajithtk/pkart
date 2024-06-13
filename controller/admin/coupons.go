@@ -80,7 +80,7 @@ func ViewCoupon(c *gin.Context) {
 
 func EditCoupon(c *gin.Context) {
 
-	Id, _ := strconv.Atoi(c.Param("Id"))
+	Id, _ := strconv.Atoi(c.Param("ID"))
 
 	var edit model.Coupons
 	var coupon model.Coupons
@@ -110,7 +110,7 @@ func EditCoupon(c *gin.Context) {
 
 func DeleteCoupon(c *gin.Context) {
 
-	Id, _ := strconv.Atoi(c.Param("Id"))
+	Id, _ := strconv.Atoi(c.Param("ID"))
 	var coupon model.Coupons
 	database.DB.First(&coupon, Id)
 
