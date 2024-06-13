@@ -297,7 +297,7 @@ func UserLogin(c *gin.Context) {
 	}
 	var checkUser model.Users
 	perror := database.DB.Where("email=?", userDetails.Email).First(&checkUser)
-	if checkUser.Status == "blocked" {
+	if checkUser.Status == "Blocked" {
 		c.JSON(404, gin.H{
 			"Status":  "failed",
 			"Code":    404,
