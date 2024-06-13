@@ -12,7 +12,7 @@ var RoleAdmin = "Admin"
 func AdminRoutes(r *gin.RouterGroup) {
 	r.POST("/login", controller.AdminLogin)
 	r.GET("/", middleware.AuthMiddleware(RoleAdmin), controller.AdminPage)
-
+	r.DELETE("/logout", middleware.AuthMiddleware(RoleAdmin), controller.Logout)
 
 	/////////users
 	r.GET("/users", middleware.AuthMiddleware(RoleAdmin), controller.ListUsers)

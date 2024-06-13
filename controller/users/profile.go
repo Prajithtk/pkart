@@ -15,7 +15,7 @@ func ShowProfile(c *gin.Context) {
 	userId := c.GetUint("userid")
 	var userProfile model.Users
 	// var userInfo []gin.H
-	if err := database.DB.Preload("Address").Where("id=?", userId).First(&userProfile).Error; err != nil {
+	if err := database.DB.Preload("addresses").Where("id=?", userId).First(&userProfile).Error; err != nil {
 		c.JSON(500, gin.H{
 			"Status":  "failed",
 			"Code":    500,
@@ -175,7 +175,6 @@ func CheckOtp(c *gin.Context) {
 		})
 		return
 	}
-
 	currentTime := time.Now()
 	if currentTime.After(notp.Expires) {
 		c.JSON(401, gin.H{
@@ -186,7 +185,6 @@ func CheckOtp(c *gin.Context) {
 		})
 		return
 	}
-
 	if otp.Otp != notp.Otp {
 		c.JSON(400, gin.H{
 			"Status":  "failed",
@@ -214,7 +212,6 @@ func NewPassword(c *gin.Context) {
 			"Data":    gin.H{},
 		})
 	}
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPass.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(401, gin.H{

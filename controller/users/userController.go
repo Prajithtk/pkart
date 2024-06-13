@@ -281,6 +281,8 @@ func ResendOtp(c *gin.Context) {
 	})
 }
 
+
+
 func UserLogin(c *gin.Context) {
 	var userDetails model.Users
 	err := c.ShouldBindJSON(&userDetails)

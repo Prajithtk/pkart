@@ -46,10 +46,10 @@ func AdminLogin(c *gin.Context) {
 	err := c.ShouldBindJSON(&admin)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"Status": "failed",
+			"Status":  "failed",
 			"Code":    400,
-			"Message":   "failed to bind json",
-			"Data"	: gin.H{},
+			"Message": "failed to bind json",
+			"Data":    gin.H{},
 		})
 		return
 	}
@@ -58,20 +58,20 @@ func AdminLogin(c *gin.Context) {
 
 	if email != admin.Name || password != admin.Password {
 		c.JSON(404, gin.H{
-			"Status": "failed",
+			"Status":  "failed",
 			"Code":    404,
 			"Message": "Incorrect username or password",
-			"Data"	: gin.H{},
+			"Data":    gin.H{},
 		})
 		return
 	} else {
 		token, err := middleware.JwtToken(c, uint(Ida), Email, RoleAdmin)
 		if err != nil {
 			c.JSON(403, gin.H{
-				"Status": "failed",
+				"Status":  "failed",
 				"Code":    403,
 				"Message": "failed to create token",
-				"Data"	: gin.H{},
+				"Data":    gin.H{},
 			})
 			return
 		}
@@ -85,6 +85,17 @@ func AdminLogin(c *gin.Context) {
 			},
 		})
 	}
+}
+
+func Logout(c *gin.Context) {
+
+	c.SetCookie("JwtTokenAdmin", "", -1, "/", "pkartz.shop", false, true)
+	c.JSON(200, gin.H{
+		"Status":  "Success",
+		"Code":    200,
+		"Message": "Logged out successfully!",
+		"Data":    gin.H{},
+	})
 }
 
 //------------------------user management---------------------------//
@@ -107,7 +118,7 @@ func ListUsers(c *gin.Context) {
 		userInfo = append(userInfo, userDetails)
 	}
 	c.JSON(200, gin.H{
-		"Status": "success",
+		"Status":  "success",
 		"Code":    200,
 		"Message": "the user details are:",
 		"Data": gin.H{
@@ -122,32 +133,18 @@ func BlockUser(c *gin.Context) {
 	if user.Status == "Blocked" {
 		database.DB.Model(&user).Update("status", "Active")
 		c.JSON(200, gin.H{
-			"Status": "success",
+			"Status":  "success",
 			"Code":    200,
 			"Message": fmt.Sprintf("User with ID %s has been unblocked", id),
-			"Data"	: gin.H{},
+			"Data":    gin.H{},
 		})
 	} else {
 		database.DB.Model(&user).Update("status", "Blocked")
 		c.JSON(200, gin.H{
-			"Status": "success",
+			"Status":  "success",
 			"Code":    200,
 			"Message": fmt.Sprintf("User with ID %s has been blocked", id),
-			"Data"	: gin.H{},
+			"Data":    gin.H{},
 		})
 	}
-}
-
-func Logout(c *gin.Context) {
-
-	fmt.Println("")
-	fmt.Println("------------------USER LOGGING OUT----------------------")
-
-	c.SetCookie("JwtUser", "", -1, "/", "pkartz.shop", false, true)
-	c.JSON(200, gin.H{
-		"Status":  "Success",
-		"Code":    200,
-		"Message": "Logged out successfully!",
-		"Data":    gin.H{},
-	})
 }
