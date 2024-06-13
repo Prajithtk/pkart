@@ -14,16 +14,31 @@ func AddToCart(c *gin.Context) {
 	var product model.Products
 	var cart model.Cart
 	if err := database.DB.Where("id=?", id).First(&product).Error; err != nil {
-		c.JSON(404, gin.H{"error": "can't find the product"})
+		c.JSON(404, gin.H{
+			"Status":  "failed",
+			"Code":    404,
+			"Message": "can't find the product",
+			"Data":    gin.H{},
+		})
 	} else {
 		err := database.DB.Where("product_id=?", id).First(&cart)
 		if err.Error == nil {
 			if cart.Quantity < 10 && cart.Quantity < product.Quantity {
 				cart.Quantity++
 				database.DB.Save(&cart)
-				c.JSON(200, gin.H{"message": "quantity added to the cart"})
+				c.JSON(200, gin.H{
+					"Status":  "success",
+					"Code":    200,
+					"Message": "quantity added to the cart",
+					"Data":    gin.H{},
+				})
 			} else {
-				c.JSON(404, gin.H{"error": "can't add more of this product"})
+				c.JSON(404, gin.H{
+					"Status":  "failed",
+					"Code":    404,
+					"Message": "can't add more of this product",
+					"Data":    gin.H{},
+				})
 				return
 			}
 		} else {
@@ -33,7 +48,12 @@ func AddToCart(c *gin.Context) {
 				Quantity:  1,
 			}
 			database.DB.Create(&cart)
-			c.JSON(200, gin.H{"message": "product added to cart successfully"})
+			c.JSON(200, gin.H{
+				"Status":  "success",
+				"Code":    200,
+				"Message": "product added to cart successfully",
+				"Data":    gin.H{},
+			})
 		}
 	}
 }
@@ -46,14 +66,29 @@ func RemoveCart(c *gin.Context) {
 	if err != nil {
 		if cart.Quantity <= 1 {
 			database.DB.Delete(&cart)
-			c.JSON(200, gin.H{"message": "product is removed from cart"})
+			c.JSON(200, gin.H{
+				"Status":  "success",
+				"Code":    200,
+				"Message": "product is removed form the cart",
+				"Data":    gin.H{},
+			})
 		} else {
 			cart.Quantity--
 			database.DB.Save(&cart)
-			c.JSON(200, gin.H{"message": "quantity is reduced by 1"})
+			c.JSON(200, gin.H{
+				"Status":  "success",
+				"Code":    200,
+				"Message": "quantity is reduced by 1",
+				"Data":    gin.H{},
+			})
 		}
 	} else {
-		c.JSON(404, gin.H{"error": "product not found in cart"})
+		c.JSON(404, gin.H{
+			"Status":  "failed",
+			"Code":    404,
+			"Message": "product not found in cart",
+			"Data":    gin.H{},
+		})
 	}
 }
 
@@ -64,7 +99,7 @@ func ViewCart(c *gin.Context) {
 		Quantity    uint
 		Description string
 		Price       int
-		OfferPrice	int
+		OfferPrice  int
 	}
 	var cart []model.Cart
 	var products []model.Products
@@ -84,13 +119,19 @@ func ViewCart(c *gin.Context) {
 			Quantity:    uint(cart[i].Quantity),
 			Description: products[i].Description,
 			Price:       int(products[i].Price),
-			OfferPrice: int(products[i].Price) - products[i].Offer,
+			OfferPrice:  int(products[i].Price) - products[i].Offer,
 		}
 		total += int(l.Quantity) * l.OfferPrice
 		show = append(show, l)
 	}
 	c.JSON(200, gin.H{
-		"Products":     show,
-		"Total Amount": total,
+		"Status":  "success",
+		"Code":    200,
+		"Message": "cart items are : ",
+		"Data": gin.H{
+			"Products":     show,
+			"Total Amount": total,
+		},
 	})
+
 }

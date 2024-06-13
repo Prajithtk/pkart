@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"net/http"
 	"pkart/database"
 	"pkart/helper"
 	"pkart/middleware"
@@ -22,23 +21,43 @@ func UserSignUp(c *gin.Context) {
 	// var userInfo model.Users
 	err := c.ShouldBindJSON(&UserInfo)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"success": "false", "message": "failed to bind json"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to bind JSON",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	var ifUser model.Users
 	uerr := database.DB.Where("email=?", UserInfo.Email).First(&ifUser)
 	if uerr.Error == nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"success": "false", "message": "User Already exist"})
+		c.JSON(401, gin.H{
+			"Status":  "failed",
+			"Code":    401,
+			"Message": "user already exist",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(UserInfo.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(401, gin.H{"success": "false", "message": "Failed to hash password"})
+		c.JSON(401, gin.H{
+			"Status":  "failed",
+			"Code":    401,
+			"Message": "failed to hash password",
+			"Data":    gin.H{},
+		})
 		return
 	}
-	cerr:= database.DB.Where("referal_code", UserInfo.ReferalCode).First(&CommisionUser)
+	cerr := database.DB.Where("referal_code", UserInfo.ReferalCode).First(&CommisionUser)
 	if cerr != nil {
-		c.JSON(401, gin.H{"success": "true", "message": "Found commission user"})
+		c.JSON(200, gin.H{
+			"Status":  "success",
+			"Code":    200,
+			"Message": "found commission user",
+			"Data":    gin.H{},
+		})
 		// return
 	}
 	UserInfo.Password = string(hashedPassword)
@@ -46,15 +65,16 @@ func UserSignUp(c *gin.Context) {
 	Code, _ := helper.GenerateRandomAlphanumericCode(6)
 	// CommisionCode := UserInfo.ReferalCode
 	UserInfo.ReferalCode = Code
-	fmt.Println("commission code",CommisionUser)
+	fmt.Println("commission code", CommisionUser)
 	otp := onetp.GenerateOTP(6)
 	err = onetp.SendOtp(UserInfo.Email, otp)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"status": "Fail",
-			"err":    err.Error(),
-			"error":  "failed to send otp",
-			"code":   400,
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to send otp",
+			"Error":   err.Error(),
+			"Data":    gin.H{},
 		})
 		return
 	}
@@ -100,8 +120,14 @@ func UserSignUp(c *gin.Context) {
 	database.DB.Create(&newOtp)
 
 	onetp.SendOtp(newOtp.Email, newOtp.Otp)
-	c.JSON(200, gin.H{"success": "true", "message": "OTP sent succesfully",
-		"otp": otp})
+	c.JSON(200, gin.H{
+		"Status":  "success",
+		"Code":    200,
+		"Message": "OTP sent successfully",
+		"Data": gin.H{
+			"OTP": otp,
+		},
+	})
 }
 
 func OtpSignUp(c *gin.Context) {
@@ -109,13 +135,23 @@ func OtpSignUp(c *gin.Context) {
 	err := c.BindJSON(&otp)
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"success": "false", "message": "failed to bind json"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to bind JSON",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	var notp model.Otp
 	oerr := database.DB.Where("Email=?", UserInfo.Email).Find(&notp)
 	if oerr.Error != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"success": "false", "message": "failed to fetch OTP"})
+		c.JSON(401, gin.H{
+			"Status":  "failed",
+			"Code":    401,
+			"Message": "failed to fetch OTP",
+			"Data":    gin.H{},
+		})
 		return
 	}
 
@@ -126,38 +162,55 @@ func OtpSignUp(c *gin.Context) {
 	// }
 
 	if otp.Otp != notp.Otp {
-		c.JSON(http.StatusBadRequest, gin.H{"success": "false", "message": "invalid otp"})
-		return
-	}
-
-	fmt.Println(UserInfo)
-	create := database.DB.Create(&UserInfo)
-	if create.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"success": "false", "message": "failed to create user"})
-		return
-		} else {
-			c.JSON(200, gin.H{"success": "true", "message": "user created successfully"})
-		}
-	var userFetchData model.Users
-	if err := database.DB.First(&userFetchData, "email=?", UserInfo.Email).Error; err != nil {
 		c.JSON(400, gin.H{
-			"status": "Fail",
-			"error":  "failed to fetch user details",
-			"code":   400,
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "invalid OTP",
+			"Data":    gin.H{},
 		})
 		return
 	}
-	fmt.Println(userFetchData)
+
+	// fmt.Println(UserInfo)
+	create := database.DB.Create(&UserInfo)
+	if create.Error != nil {
+		c.JSON(500, gin.H{
+			"Status":  "failed",
+			"Code":    500,
+			"Message": "failed to create user",
+			"Data":    gin.H{},
+		})
+		return
+	} else {
+		c.JSON(200, gin.H{
+			"Status":  "success",
+			"Code":    200,
+			"Message": "user created successfully",
+			"Data":    gin.H{},
+		})
+	}
+	var userFetchData model.Users
+	if err := database.DB.First(&userFetchData, "email=?", UserInfo.Email).Error; err != nil {
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to fetch user details",
+			"Data":    gin.H{},
+		})
+		return
+	}
+	// fmt.Println(userFetchData)
 	var refFetch model.Users
 	var wallet model.Wallet
-	fmt.Println("commcode", CommisionUser)
+	// fmt.Println("commcode", CommisionUser)
 	if UserInfo.ReferalCode != "" {
 
 		if err := database.DB.First(&refFetch, "referal_code=?", CommisionUser.ReferalCode).Error; err != nil {
 			c.JSON(400, gin.H{
-				"status": "Fail",
-				"error":  "failed to fetch user details for referal code",
-				"code":   400,
+				"status":  "failed",
+				"Code":    400,
+				"Message": "failed to fetch user details for referal code",
+				"Data":    gin.H{},
 			})
 			return
 		}
@@ -173,26 +226,37 @@ func OtpSignUp(c *gin.Context) {
 	wallet.UserId = userFetchData.ID
 	database.DB.Create(&wallet)
 
-
 	c.SetCookie("sessionId", "", -1, "/", "", false, false)
 	c.JSON(201, gin.H{
-		"status":  "Success",
+		"Status":  "success",
+		"Code":    201,
 		"message": "user created successfully",
+		"Data":    gin.H{},
 	})
-	UserInfo= model.Users{}
+	UserInfo = model.Users{}
 }
 
 func ResendOtp(c *gin.Context) {
 	var resend model.Otp
 	err := c.ShouldBindJSON(&resend)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"success": "false", "message": "failed to fetch otp"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to fetch OTP",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	var exotp model.Otp
 	perr := database.DB.Where("email=?", resend.Email).First(&exotp)
 	if perr.Error != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"success": "false", "message": "email not found"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "email not found",
+			"Data":    gin.H{},
+		})
 		return
 	}
 
@@ -200,46 +264,81 @@ func ResendOtp(c *gin.Context) {
 
 	res := database.DB.Model(&model.Otp{}).Where("email=?", resend.Email).Updates(model.Otp{Otp: newOtp, Expires: time.Now().Add(1 * time.Minute)})
 	if res.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"success": "false", "message": "failed to resend otp"})
+		c.JSON(500, gin.H{
+			"Status":  "failed",
+			"Code":    500,
+			"Message": "failed to resend OTP",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	onetp.SendOtp(resend.Email, newOtp)
-	c.JSON(200, gin.H{"success": "true", "message": "otp resent successfully"})
+	c.JSON(200, gin.H{
+		"Status":  "success",
+		"Code":    200,
+		"Message": "OTP resend successfully",
+		"Data":    gin.H{},
+	})
 }
 
 func UserLogin(c *gin.Context) {
 	var userDetails model.Users
 	err := c.ShouldBindJSON(&userDetails)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"success": "false", "message": "failed to bind json"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to bind JSON",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	var checkUser model.Users
 	perror := database.DB.Where("email=?", userDetails.Email).First(&checkUser)
 	if checkUser.Status == "blocked" {
-		c.JSON(404, gin.H{"success": "false", "message": "Your account is blocked"})
+		c.JSON(404, gin.H{
+			"Status":  "failed",
+			"Code":    404,
+			"Message": "your account is blocked",
+			"Data":    gin.H{},
+		})
 	}
 	if perror.Error != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"success": "false", "message": "User not found"})
+		c.JSON(401, gin.H{
+			"Status":  "failed",
+			"Code":    401,
+			"Message": "user not found",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	hashpassword := bcrypt.CompareHashAndPassword([]byte(checkUser.Password), []byte(userDetails.Password))
 	if hashpassword != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"success": "false", "message": "Incorrect Password"})
+		c.JSON(401, gin.H{
+			"Status":  "failed",
+			"Code":    401,
+			"Message": "incorrect password",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	token, err := middleware.JwtToken(c, checkUser.ID, checkUser.Email, RoleUser)
 
 	if err != nil {
-		c.JSON(403, gin.H{"success": "false", "message": "failed to create token"})
+		c.JSON(403, gin.H{
+			"Status":  "failed",
+			"Code":    403,
+			"Message": "failed to create token",
+			"Data":    gin.H{},
+		})
 		return
 	}
 
-	c.SetCookie("JwtTokenUser", token, int((time.Hour * 100).Seconds()), "/", "localhost", false, false)
+	c.SetCookie("JwtTokenUser", token, int((time.Hour * 100).Seconds()), "/", "pkartz.shop", false, false)
 	c.JSON(200, gin.H{
-		"Status":  "Success!",
+		"Status":  "success",
 		"Code":    200,
-		"Message": "Successfully Logged in!",
+		"Message": "successfully logged in",
 		"Data": gin.H{
 			"Token": token,
 			"Id":    checkUser.ID,
@@ -248,10 +347,7 @@ func UserLogin(c *gin.Context) {
 }
 func Logout(c *gin.Context) {
 
-	fmt.Println("")
-	fmt.Println("------------------USER LOGGING OUT----------------------")
-
-	c.SetCookie("JwtUser", "", -1, "/", "localhost", false, true)
+	c.SetCookie("JwtUser", "", -1, "/", "pkartz.shop", false, true)
 	c.JSON(200, gin.H{
 		"Status":  "Success!",
 		"Code":    200,

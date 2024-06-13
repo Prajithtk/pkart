@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"pkart/database"
 	"pkart/model"
 
@@ -14,11 +13,22 @@ func AddAddress(c *gin.Context) {
 	var address model.Address
 
 	if err := c.BindJSON(&address); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Error":   err.Error(),
+			"Message": "failed to bind json",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	if len(address.PinCode) != 6 {
-		c.JSON(400, gin.H{"error": "pincode should be 6 digits"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "pincode should be 6 digits",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	err := database.DB.Create(&model.Address{
@@ -31,29 +41,52 @@ func AddAddress(c *gin.Context) {
 		UserId:       userId,
 	}).Error
 	if err != nil {
-		c.JSON(400, map[string]interface{}{
-			"error": err.Error(),
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": err.Error(),
+			"Data":    gin.H{},
 		})
 		return
 	}
-	c.JSON(200, "message: successfully added an address")
+	c.JSON(200, gin.H{
+		"Status":  "success",
+		"Code":    200,
+		"Message": "successfully added an address",
+		"Data":    gin.H{},
+	})
 }
 
 func EditAddress(c *gin.Context) {
 	var addressDetails model.Address
 	err := c.ShouldBindJSON(&addressDetails)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "failed to bind json"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to bind json",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	userId := c.GetUint("userid")
 	addId := c.Param("ID")
 	aerr := database.DB.Where("address_id=? AND user_id=?", addId, userId).Updates(&addressDetails)
 	if aerr.Error != nil {
-		c.JSON(400, gin.H{"error": "failed to edit address"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to edit address",
+			"Data":    gin.H{},
+		})
 		return
 	}
-	c.JSON(200, gin.H{"message": "successfully edited the address"})
+	c.JSON(200, gin.H{
+		"Status":  "success",
+		"Code":    200,
+		"Message": "successfully edited the address",
+		"Data":    gin.H{},
+	})
 }
 
 func DeleteAddress(c *gin.Context) {
@@ -61,24 +94,39 @@ func DeleteAddress(c *gin.Context) {
 	adrId := c.Param("ID")
 	userId := c.GetUint("userid")
 	if err := database.DB.Where("address_id=? AND user_id=?", adrId, userId).First(&address).Error; err != nil {
-		c.JSON(400, gin.H{"error": "failed to fetch address"})
-		fmt.Println(err)
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to fetch address",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	res := database.DB.Delete(&address)
 	if res.Error != nil {
-		c.JSON(400, gin.H{"error": "failed to delete address"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to delete address",
+			"Data":    gin.H{},
+		})
 		return
 	}
-	c.JSON(200, gin.H{"message": "successfully deleted address"})
+	c.JSON(200, gin.H{
+		"Status":  "success",
+		"Code":    200,
+		"Message": "successfully deleted address",
+		"Data":    gin.H{},
+	})
 }
 
 func ListAddress(c *gin.Context) {
 	userId := c.GetUint("userid")
 	var addressList []model.Address
+	var list []gin.H
 	database.DB.Order("address_id asc").Find(&addressList).Where("userid=?", userId)
 	for _, val := range addressList {
-		c.JSON(200, gin.H{
+		list = append(list, gin.H{
 			"id":            val.AddressId,
 			"building name": val.BuildingName,
 			"street":        val.Street,
@@ -88,4 +136,12 @@ func ListAddress(c *gin.Context) {
 			"pincode":       val.PinCode,
 		})
 	}
+	c.JSON(200, gin.H{
+		"Status":  "success",
+		"Code":    200,
+		"Message": "address details are : ",
+		"Data": gin.H{
+			"categories": list,
+		},
+	})
 }

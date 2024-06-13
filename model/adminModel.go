@@ -46,15 +46,6 @@ type Coupons struct {
 	Exp   time.Time
 }
 
-// type Offer struct {
-// 	Id           uint
-// 	ProductId    int       `json:"productid"`
-// 	SpecialOffer string    `json:"offer"`
-// 	Discount     float64   `json:"discount"`
-// 	ValidFrom    time.Time `json:"valid_from"`
-// 	ValidTo      time.Time `json:"valid_to"`
-// }
-
 // type Banner struct {
 // 	Id  uint
 // 	Url string

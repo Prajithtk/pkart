@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"pkart/database"
 	"pkart/model"
 
@@ -10,31 +9,27 @@ import (
 
 func ShowWallet(c *gin.Context) {
 
-	fmt.Println("")
-	fmt.Println("------------------WALLET SHOWING----------------------")
-
 	// Logged := c.MustGet("Id").(uint)
 	userId := c.GetUint("userid")
-
 	var wallet model.Wallet
 
 	if err := database.DB.First(&wallet, "User_Id=?", userId).Error; err != nil {
 		c.JSON(404, gin.H{
-			"Status":  "Error!",
+			"Status":  "error",
 			"Code":    404,
-			"Message": "Wallet not found!",
+			"Message": "wallet not found",
 			"Data":    gin.H{},
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"Status":  "Success!",
+		"Status":  "success",
 		"Code":    200,
-		"Message": "Wallet found!",
-		"Data":    gin.H{"Balance": wallet.Amount},
+		"Message": "wallet found",
+		"Data": gin.H{
+			"Balance": wallet.Amount,
+		},
 	})
 
-	// code,_ :=helper.GenerateRandomAlphanumericCode(8)
-	// fmt.Println("code:",code)
 }

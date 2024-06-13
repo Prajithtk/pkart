@@ -12,9 +12,6 @@ import (
 
 func AddRating(c *gin.Context) {
 
-	fmt.Println("")
-	fmt.Println("-----------------------------ADDING RATING------------------------")
-
 	var rating, alrdyRate model.Rating
 	var rates []model.Rating
 	var product model.Products
@@ -33,9 +30,9 @@ func AddRating(c *gin.Context) {
 
 	if rating.Rating > 5 {
 		c.JSON(401, gin.H{
-			"Status":  "Error!",
+			"Status":  "error",
 			"Code":    401,
-			"Message": "Rating should be in between 1 and 5",
+			"Message": "rating should be in between 1 and 5",
 			"Data":    gin.H{},
 		})
 		return
@@ -47,9 +44,9 @@ func AddRating(c *gin.Context) {
 	if er != nil {
 		if err != nil {
 			c.JSON(404, gin.H{
-				"Status":  "Error!",
+				"Status":  "error",
 				"Code":    404,
-				"Message": "Product not found!",
+				"Message": "product not found",
 				"Data":    gin.H{},
 			})
 		} else {
@@ -63,17 +60,17 @@ func AddRating(c *gin.Context) {
 			product.AvrgRating = sum / float32(len(rates))
 			database.DB.Save(&product)
 			c.JSON(201, gin.H{
-				"Status":  "Success!",
+				"Status":  "success",
 				"Code":    201,
-				"Message": "Rating and review added successfully!",
+				"Message": "rating and review added successfully",
 				"Data":    gin.H{},
 			})
 		}
 	} else {
 		c.JSON(401, gin.H{
-			"Status":  "Error!",
+			"Status":  "error",
 			"Code":    401,
-			"Message": "Rating or review  already exists, Try to update it instead of adding again!",
+			"Message": "rating or review  already exists, Try to update it instead of adding again",
 			"Data":    gin.H{},
 		})
 	}
@@ -82,10 +79,6 @@ func AddRating(c *gin.Context) {
 
 func EditRating(c *gin.Context) {
 
-	fmt.Println("")
-	fmt.Println("-----------------------------EDIT RATING------------------------")
-
-	// id, _ := strconv.Atoi(c.Query("Id"))
 	userId := c.GetUint("userid")
 	ProductId, _ := strconv.Atoi(c.Param("ID"))
 
@@ -95,37 +88,37 @@ func EditRating(c *gin.Context) {
 	var rates []model.Rating
 	var sum float32
 
-	fmt.Println("rates:",rates)
+	// fmt.Println("rates:",rates)
 	if err := database.DB.Where("Product_Id=?", uint(ProductId)).Find(&rates).Error; err != nil {
 		c.JSON(400, gin.H{
-			"Status":  "Error!",
+			"Status":  "error",
 			"Code":    404,
-			"Message": "Couldn't find any rating for review for this product!",
+			"Message": "couldn't find any rating for review for this product",
 			"Data":    gin.H{},
 		})
 		return
 	}
-	fmt.Println("rates:",rates)
+	// fmt.Println("rates:",rates)
 
 	if err := database.DB.Preload("Product").Where("User_Id=? AND Product_Id=?", userId, uint(ProductId)).First(&rate).Error; err != nil {
 		c.JSON(404, gin.H{
-			"Status":  "Error!",
+			"Status":  "error",
 			"Code":    404,
-			"Message": "Rating and review not found! Please add first!",
+			"Message": "rating and review not found! Please add first",
 			"Data":    gin.H{},
 		})
 		return
 	}
-	fmt.Println("rate:",rate )
+	// fmt.Println("rate:",rate )
 
 	rating, _ := strconv.Atoi(c.Request.FormValue("rating"))
 	rate.Review = c.Request.FormValue("review")
 	rate.Rating = float32(rating)
 	if rate.Rating > 5 {
 		c.JSON(401, gin.H{
-			"Status":  "Error!",
+			"Status":  "error",
 			"Code":    401,
-			"Message": "Rating should be less than or equal to 5!",
+			"Message": "rating should be less than or equal to 5",
 			"Data":    gin.H{},
 		})
 		return
@@ -141,9 +134,9 @@ func EditRating(c *gin.Context) {
 	// if err := database.DB.Model(&rate).Updates(&rating).Error; err != nil {
 	if err := database.DB.Model(&rate).Updates(&rating).Error; err != nil {
 		c.JSON(500, gin.H{
-			"Status":  "Error!",
+			"Status":  "error",
 			"Code":    500,
-			"Message": "Couldn't update the rating or review! try again",
+			"Message": "couldn't update the rating or review! try again",
 			"Data":    gin.H{},
 		})
 		return
@@ -154,19 +147,19 @@ func EditRating(c *gin.Context) {
 	rate.Product.AvrgRating = sum / float32(len(rates))
 	if err := database.DB.Save(&rate.Product).Error; err != nil {
 		c.JSON(500, gin.H{
-			"Status":  "Error!",
+			"Status":  "error",
 			"Code":    500,
 			"Error":   err.Error(),
-			"Message": "Couldn't update the rating or review!",
+			"Message": "couldn't update the rating or review",
 			"Data":    gin.H{},
 		})
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"Status":  "Error!",
+		"Status":  "error",
 		"Code":    404,
-		"Message": "The rating has been updated!",
+		"Message": "rating has been updated",
 		"Data":    gin.H{},
 	})
 }

@@ -22,8 +22,12 @@ func OrderView(c *gin.Context) {
 		})
 	}
 	c.JSON(200, gin.H{
-		"status": "success",
-		"orders": orderShow,
+		"Status": "success",
+		"Code": 200,
+		"Message": "order items are:",
+		"Data": gin.H{
+			"orders": orderShow,
+		},
 	})
 }
 
@@ -34,17 +38,19 @@ func OrderDetails(c *gin.Context) {
 	orderId := c.Param("ID")
 	if err := database.DB.Where("order_items.order_id=?", orderId).Preload("Order").Find(&orderitems).Error; err != nil {
 		c.JSON(400, gin.H{
-			"status": "Fail",
-			"error":  "Can't find order details",
-			"code":   400,
+			"Status": "failed",
+			"Code":   400,
+			"Message":  "can't find order details",
+			"Data": gin.H{},
 		})
 		return
 	}
 	if error := database.DB.Where("payments.order_id=?", orderId).First(&payment).Error; error != nil {
 		c.JSON(400, gin.H{
-			"status": "Fail",
-			"error":  "Can't find payment details",
-			"code":   400,
+			"Status": "failed",
+			"Code":   400,
+			"Message":  "can't find payment details",
+			"Data": gin.H{},
 		})
 		return
 	}
@@ -70,11 +76,15 @@ func OrderDetails(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"status":          "Success",
+		"code": 200,
+		"Message": "order details are:",
+		"Data" : gin.H{
 		"orderDetails":    orderItemShow,
 		"totalAmount":     totalAmount,
 		"subTotal":        subTotal,
 		"coupon discount": subTotal - totalAmount,
 		"paymentStatus":   payment.Status,
+		},
 	})
 }
 
@@ -86,16 +96,18 @@ func CancelOrder(c *gin.Context) {
 	tx := database.DB.Begin()
 	if reason == "" {
 		c.JSON(402, gin.H{
-			"status":  "Fail",
-			"message": "Please provide a valid cancellation reason.",
-			"code":    402,
+			"Status":  "failed",
+			"Code":    402,
+			"Message": "please provide a valid cancellation reason.",
+			"Data": gin.H{},
 		})
 	} else {
 		if err := tx.First(&orderItem, orderItemId).Error; err != nil {
 			c.JSON(404, gin.H{
-				"status": "Fail",
-				"error":  "can't find order",
-				"code":   404,
+				"Status": "fail",
+				"Code":   404,
+				"Message":  "can't find order",
+				"Data": gin.H{},
 			})
 			tx.Rollback()
 			return
@@ -103,9 +115,10 @@ func CancelOrder(c *gin.Context) {
 		// fmt.Println("orderitems:", orderItem)
 		if orderItem.Status == "cancelled" {
 			c.JSON(202, gin.H{
-				"status":  "Fail",
-				"message": "product already cancelled",
-				"code":    202,
+				"Status":  "failed",
+				"Code":    202,
+				"Message": "product already cancelled",
+				"Data": gin.H{},
 			})
 			return
 		}
@@ -114,9 +127,10 @@ func CancelOrder(c *gin.Context) {
 		orderItem.CancelReason = reason
 		if err := tx.Save(&orderItem).Error; err != nil {
 			c.JSON(500, gin.H{
-				"status": "Fail",
-				"error":  "Failed to  save changes to database.",
-				"code":   500,
+				"Status": "failed",
+				"Code":   500,
+				"Message":  "failed to  save changes to database.",
+				"Data": gin.H{},
 			})
 			tx.Rollback()
 			return
@@ -125,9 +139,10 @@ func CancelOrder(c *gin.Context) {
 		var orderAmount model.Orders
 		if err := tx.First(&orderAmount, orderItem.OrderId).Error; err != nil {
 			c.JSON(404, gin.H{
-				"status": "Fail",
-				"error":  "failed to find order details",
-				"code":   404,
+				"Status": "failed",
+				"Code":   404,
+				"Message":  "failed to find order details",
+				"Data": gin.H{},
 			})
 			tx.Rollback()
 			return
@@ -137,9 +152,10 @@ func CancelOrder(c *gin.Context) {
 		if orderAmount.CouponCode != "" {
 			if err := database.DB.First(&couponRemove, "code=?", orderAmount.CouponCode).Error; err != nil {
 				c.JSON(404, gin.H{
-					"status": "Fail",
-					"error":  "can't find coupon code",
-					"code":   404,
+					"Status": "failed",
+					"Code":   404,
+					"Message":  "can't find coupon code",
+					"Data": gin.H{},
 				})
 				tx.Rollback()
 			}
@@ -151,9 +167,10 @@ func CancelOrder(c *gin.Context) {
 		}
 		if err := tx.Save(&orderAmount).Error; err != nil {
 			c.JSON(500, gin.H{
-				"status": "Fail",
-				"error":  "failed to update order details",
-				"code":   500,
+				"Status": "failed",
+				"Code":   500,
+				"Message":  "failed to update order details",
+				"Data": gin.H{},
 			})
 			tx.Rollback()
 			return
@@ -164,6 +181,7 @@ func CancelOrder(c *gin.Context) {
 				"status": "Fail",
 				"error":  "failed to fetch wallet details",
 				"code":   501,
+				"Data": gin.H{},
 			})
 			tx.Rollback()
 			return
@@ -176,13 +194,15 @@ func CancelOrder(c *gin.Context) {
 				"status":  "Fail",
 				"message": "failed to commit transaction",
 				"code":    201,
+				"Data": gin.H{},
 			})
 			tx.Rollback()
 		} else {
 			c.JSON(201, gin.H{
-				"status":  "Success",
-				"message": "Order Cancelled",
-				"data":    orderItem.Status,
+				"Status":  "Success",
+				"Code" : 201,
+				"Message": "order cancelled",
+				"Data":    orderItem.Status,
 			})
 		}
 	}

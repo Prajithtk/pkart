@@ -41,7 +41,7 @@ func AuthMiddleware(requiredRole string) gin.HandlerFunc {
 			c.JSON(401, gin.H{
 				"Status":  "Unauthorized",
 				"Code":    401,
-				"Message": "Can't find cookie try again!!!!!!",
+				"Message": "can't find cookie try again",
 				"Data":    gin.H{},
 			})
 			c.Abort()

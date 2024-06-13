@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"net/http"
 	"pkart/database"
 	"strings"
 
@@ -25,7 +24,12 @@ func SortProduct(c *gin.Context) {
 	}
 
 	if err := c.BindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse JSON"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to parse JSON",
+			"Data":    gin.H{},
+		})
 		return
 	}
 
@@ -44,8 +48,20 @@ func SortProduct(c *gin.Context) {
 	case "latest":
 		database.DB.Order("created_at desc").Find(&product)
 	default:
-		c.JSON(http.StatusInternalServerError, gin.H{"Error": "Please give correct options"})
+		c.JSON(404, gin.H{
+			"Status":  "failed",
+			"Code":    404,
+			"Message": "please give correct options",
+			"Data":    gin.H{},
+		})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"Products": product})
+	c.JSON(200, gin.H{
+		"Status":  "success",
+		"Code":    200,
+		"Message": "showing sorted products",
+		"Data": gin.H{
+			"Products": product,
+		},
+	})
 }

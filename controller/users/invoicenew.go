@@ -15,27 +15,30 @@ func CreateInvoice(c *gin.Context) {
 	var user model.Users
 	if err := database.DB.First(&user, userID).Error; err != nil {
 		c.JSON(404, gin.H{
-			"status": "Fail",
-			"error":  "User not found",
-			"code":   404,
+			"Status":  "failed",
+			"Code":    404,
+			"Message": "user not found",
+			"Data":    gin.H{},
 		})
 		return
 	}
 	var orderItem []model.OrderItem
 	if err := database.DB.Where("order_id = ? AND status!=?", orderId, "cancelled").Preload("Product").Preload("Order.Address").Find(&orderItem).Error; err != nil {
 		c.JSON(503, gin.H{
-			"status": "Fail",
-			"error":  "Failed to fetch orders",
-			"code":   503,
+			"Status":  "failed",
+			"Code":    503,
+			"Message": "failed to fetch orders",
+			"Data":    gin.H{},
 		})
 		return
 	}
 	for _, order := range orderItem {
 		if order.Status != "delivered" {
 			c.JSON(202, gin.H{
-				"status":  "Fail",
-				"message": "Order not Delivered ",
-				"code":    202,
+				"Status":  "failed",
+				"Code":    202,
+				"Message": "order not delivered",
+				"Data":    gin.H{},
 			})
 			return
 		}
@@ -88,7 +91,7 @@ func CreateInvoice(c *gin.Context) {
 	pdf.CellFormat(40, 10, "Offer Price", "1", 0, "C", true, 0, "")
 	pdf.CellFormat(40, 10, "Coup-Disc", "1", 0, "C", true, 0, "")
 	pdf.CellFormat(40, 10, "Net Price", "1", 0, "C", true, 0, "")
-	
+
 	pdf.Ln(10)
 
 	totalAmount := 0.0
@@ -98,8 +101,8 @@ func CreateInvoice(c *gin.Context) {
 		pdf.CellFormat(30, 10, fmt.Sprintf("%d", order.Quantity), "1", 0, "C", false, 0, "")
 		pdf.CellFormat(30, 10, fmt.Sprintf("%d", order.Product.Price), "1", 0, "R", false, 0, "")
 		pdf.CellFormat(40, 10, fmt.Sprintf("%.2f", order.SubTotal), "1", 0, "R", false, 0, "")
-		pdf.CellFormat(40, 10, fmt.Sprintf("%.2f",order.SubTotal - order.Amount), "1", 0, "R", false, 0, "")
-		pdf.CellFormat(40, 10, fmt.Sprintf("%.2f",order.Amount), "1", 0, "R", false, 0, "")
+		pdf.CellFormat(40, 10, fmt.Sprintf("%.2f", order.SubTotal-order.Amount), "1", 0, "R", false, 0, "")
+		pdf.CellFormat(40, 10, fmt.Sprintf("%.2f", order.Amount), "1", 0, "R", false, 0, "")
 		pdf.Ln(10)
 		totalAmount += float64(order.SubTotal)
 	}
@@ -126,9 +129,10 @@ func CreateInvoice(c *gin.Context) {
 	pdfPath := "/home/prajith/Desktop/Bttp/Invoice.pdf"
 	if err := pdf.OutputFileAndClose(pdfPath); err != nil {
 		c.JSON(500, gin.H{
-			"status": "Fail",
-			"error":  "Failed to generate PDF file",
-			"code":   500,
+			"Status":  "failed",
+			"Code":    500,
+			"Message": "failed to generate PDF file",
+			"Data":    gin.H{},
 		})
 		return
 	}
@@ -138,7 +142,9 @@ func CreateInvoice(c *gin.Context) {
 	c.File(pdfPath)
 
 	c.JSON(200, gin.H{
-		"status":  "Success",
+		"Status":  "success",
+		"Code":    200,
 		"message": "PDF file generated and sent successfully",
+		"Data":    gin.H{},
 	})
 }

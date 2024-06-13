@@ -16,7 +16,12 @@ func ShowProfile(c *gin.Context) {
 	var userProfile model.Users
 	// var userInfo []gin.H
 	if err := database.DB.Preload("Address").Where("id=?", userId).First(&userProfile).Error; err != nil {
-		c.JSON(500, gin.H{"error": "failed to fetch user profile"})
+		c.JSON(500, gin.H{
+			"Status":  "failed",
+			"Code":    500,
+			"Message": "failed to fetch user profile",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	response := gin.H{
@@ -29,16 +34,21 @@ func ShowProfile(c *gin.Context) {
 	// 	response["Address"] = userProfile.Address
 	// }
 	c.JSON(200, gin.H{
-		"success": "true",
-		"message": "profile details are:",
-		"values":  response})
+		"Status": "success",
+		"Code" : 200,
+		"Message": "profile details are:",
+		"Data":  response})
 }
 
 func EditProfile(c *gin.Context) {
 	var editdata model.Users
-	fmt.Println("hello world")
 	if err := c.ShouldBindJSON(&editdata); err != nil {
-		c.JSON(400, gin.H{"error": "failed to bind json"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to bind json",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	fmt.Println(editdata)
@@ -46,10 +56,20 @@ func EditProfile(c *gin.Context) {
 	userId := c.GetUint("userid")
 	fmt.Println(userId)
 	if err := database.DB.Where("id=?", userId).Updates(&editdata); err.Error != nil {
-		c.JSON(404, gin.H{"error": "failed to update address"})
+		c.JSON(404, gin.H{
+			"Status":  "failed",
+			"Code":    404,
+			"Message": "failed to update address",
+			"Data":    gin.H{},
+		})
 		return
 	}
-	c.JSON(200, gin.H{"message": "profile editted successfully"})
+	c.JSON(200, gin.H{
+		"Status":  "success",
+		"Code":    200,
+		"Message": "profile edited successfully",
+		"Data":    gin.H{},
+	})
 }
 
 var Useremail model.Users
@@ -59,15 +79,30 @@ func ForgetPassword(c *gin.Context) {
 	var CheckOtp model.Otp
 	var checkMail model.Users
 	if err := c.ShouldBindJSON(&Useremail); err != nil {
-		c.JSON(400, gin.H{"error": "failed to bind json"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to bind json",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	if Useremail.Email == "" {
-		c.JSON(303, gin.H{"error": "enter the email"})
+		c.JSON(303, gin.H{
+			"Status":  "error",
+			"Code":    303,
+			"Message": "enter the email",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	if err := database.DB.Where("email=?", Useremail.Email).First(&checkMail).Error; err != nil {
-		c.JSON(400, gin.H{"error": "no account found,SignUp"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "no account found, SignUp",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	otp := onetp.GenerateOTP(6)
@@ -78,64 +113,131 @@ func ForgetPassword(c *gin.Context) {
 	}
 	fmt.Println(newOtp)
 	if err := onetp.SendOtp(Useremail.Email, otp); err != nil {
-		c.JSON(500, gin.H{"error": "failed to send otp"})
+		c.JSON(500, gin.H{
+			"Status":  "failed",
+			"Code":    500,
+			"Message": "failed to sent OTP",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	if res := database.DB.Where("email=?", Useremail.Email).First(&CheckOtp).Error; res != nil {
 		if err := database.DB.Create(&newOtp).Error; err != nil {
-			c.JSON(500, gin.H{"error": "failed to save otp"})
+			c.JSON(500, gin.H{
+				"Status":  "failed",
+				"Code":    500,
+				"Message": "failed to save OTP",
+				"Data":    gin.H{},
+			})
 			return
 		}
 	} else {
 		if err := database.DB.Model(&CheckOtp).Where("email=?", Useremail.Email).Updates(&newOtp).Error; err != nil {
-			c.JSON(500, gin.H{"error": "failed to update otp table"})
+			c.JSON(500, gin.H{
+				"Status":  "failed",
+				"Code":    500,
+				"Message": "failed to update OTP table",
+				"Data":    gin.H{},
+			})
 			return
 		}
 	}
-	c.JSON(303, gin.H{"message": "OTP sent to successfully", "otp": otp})
+	c.JSON(303, gin.H{
+		"Status":  "success",
+		"Code":    303,
+		"Message": "OTP sent successfully",
+		"Data":    gin.H{
+			"OTP": otp,
+		},
+	})
 }
 
 func CheckOtp(c *gin.Context) {
 	var otp model.Otp
 	if err := c.ShouldBindJSON(&otp); err != nil {
-		c.JSON(404, gin.H{"error": "failed to bind json"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to bind json",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	var notp model.Otp
 	oerr := database.DB.Where("email=?", Useremail.Email).First(&notp)
 	fmt.Println(Useremail.Email)
 	if oerr.Error != nil {
-		c.JSON(401, gin.H{"error": "failed to fetch OTP"})
+		c.JSON(401, gin.H{
+			"Status":  "failed",
+			"Code":    401,
+			"Message": "failed to fetch OTP",
+			"Data":    gin.H{},
+		})
 		return
 	}
 
 	currentTime := time.Now()
 	if currentTime.After(notp.Expires) {
-		c.JSON(401, gin.H{"error": "OTP expired"})
+		c.JSON(401, gin.H{
+			"Status":  "failed",
+			"Code":    401,
+			"Message": "OTP expired",
+			"Data":    gin.H{},
+		})
 		return
 	}
 
 	if otp.Otp != notp.Otp {
-		c.JSON(400, gin.H{"error": "invalid otp"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "invalid otp",
+			"Data":    gin.H{},
+		})
 		return
 	}
-	c.JSON(200, gin.H{"message": "Enter new password"})
+	c.JSON(200, gin.H{
+		"Status":  "success",
+		"Code":    200,
+		"Message": "enter new password",
+		"Data":    gin.H{},
+	})
 }
 
 func NewPassword(c *gin.Context) {
 	var newPass model.Users
 	if err := c.ShouldBindJSON(&newPass); err != nil {
-		c.JSON(404, gin.H{"error": "failed to bind json"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "failed to bind json",
+			"Data":    gin.H{},
+		})
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPass.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(401, gin.H{"error": "Failed to hash password"})
+		c.JSON(401, gin.H{
+			"Status":  "failed",
+			"Code":    401,
+			"Message": "failed to hash password",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	newPass.Password = string(hashedPassword)
 	if err := database.DB.Model(&newPass).Where("email=?", Useremail.Email).Updates(&newPass).Error; err != nil {
-		c.JSON(404, gin.H{"error": "failed to update password"})
+		c.JSON(404, gin.H{
+			"Status":  "failed",
+			"Code":    404,
+			"Message": "failed to update password",
+			"Data":    gin.H{},
+		})
 	}
-	c.JSON(200, gin.H{"message": "successfully updated password"})
+	c.JSON(200, gin.H{
+		"Status":  "success",
+		"Code":    200,
+		"Message": "successfully updated password",
+		"Data":    gin.H{},
+	})
 }

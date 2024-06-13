@@ -10,21 +10,17 @@ import (
 
 func SearchProduct(c *gin.Context) {
 
-	fmt.Println("")
-	fmt.Println("-----------------------------SEARCH PRODUCT------------------------")
-
 	var products []model.Products
 	var show []gin.H
-
 	searchQuery := c.Query("search")
-	fmt.Println(searchQuery)
+	// fmt.Println(searchQuery)
 
 	database.DB.Where("name ILIKE ?", "%"+searchQuery+"%").Find(&products)
 	if len(products) == 0 {
 		c.JSON(404, gin.H{
-			"Status":  "Fail!",
+			"Status":  "failed",
 			"Code":    404,
-			"Message": "Products not found!",
+			"Message": "products not found",
 			"Data":    gin.H{},
 		})
 		return
@@ -52,17 +48,14 @@ func SearchProduct(c *gin.Context) {
 			})
 	}
 	c.JSON(200, gin.H{
-		"Status":  "Success!",
+		"Status":  "success",
 		"Code":    200,
-		"Message": "Showing searched products!",
+		"Message": "showing searched products!",
 		"Data":    show,
 	})
 }
 
 func FilterProduct(c *gin.Context) {
-
-	fmt.Println("")
-	fmt.Println("-----------------------------FILTER PRODUCT------------------------")
 
 	var Product []model.Products
 	var show []gin.H
@@ -73,7 +66,12 @@ func FilterProduct(c *gin.Context) {
 	fmt.Println(Category)
 
 	if err := database.DB.Preload("Category").Find(&Product).Error; err != nil {
-		c.JSON(404, gin.H{"Error": "Couldn't find any product!"})
+		c.JSON(404, gin.H{
+			"Status":  "success",
+			"Code":    404,
+			"Message": "couldn't find any product",
+			"Data":    show,
+		})
 		return
 	}
 
@@ -97,17 +95,17 @@ func FilterProduct(c *gin.Context) {
 	}
 	if show == nil {
 		c.JSON(404, gin.H{
-			"Status":  "Error!",
+			"Status":  "error",
 			"Code":    404,
-			"Message": "No products found in this category!",
+			"Message": "no products found in this category",
 			"Data":    gin.H{},
 		})
 		return
 	}
 	c.JSON(200, gin.H{
-		"Status":  "Success!",
+		"Status":  "success",
 		"Code":    200,
-		"Message": "Showing products of specific category!",
+		"Message": "showing products of specific category",
 		"Data": gin.H{
 			"Products": show,
 		},

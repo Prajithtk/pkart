@@ -13,13 +13,23 @@ func PaginateProducts(c *gin.Context) {
 	// Parse query parameters
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page < 1 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page number"})
+		c.JSON(400, gin.H{
+			"Status": "error",
+			"Code": 400,
+			"Message": "invalid page number",
+			"Data":    gin.H{},
+		})
 		return
 	}
 
 	pageSize, err := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 	if err != nil || pageSize < 1 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page size"})
+		c.JSON(400, gin.H{
+			"Status": "error",
+			"Code": 400,
+			"Message": "invalid page size",
+			"Data":    gin.H{},
+		})
 		return
 	}
 
@@ -31,7 +41,12 @@ func PaginateProducts(c *gin.Context) {
 	var productinfo []gin.H
 	result := database.DB.Preload("Category").Limit(pageSize).Offset(offset).Find(&products)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch records"})
+		c.JSON(400, gin.H{
+			"Status": "failed",
+			"Code": 500,
+			"Message": "failed to fetch records",
+			"Data":    gin.H{},
+		})
 		return
 	}
 	for _, val := range products {
@@ -55,7 +70,12 @@ func PaginateProducts(c *gin.Context) {
 	// Retrieve total count of records (for pagination metadata)
 	var totalCount int64
 	if err := database.DB.Model(&model.Products{}).Count(&totalCount).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve total count"})
+		c.JSON(500, gin.H{
+			"Status": "failed",
+			"Code": 500,
+			"Message": "failed to retreive total count",
+			"Data":    gin.H{},
+		})
 		return
 	}
 
@@ -72,7 +92,8 @@ func PaginateProducts(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":  "true",
-		"message": "product details are:",
-		"values":  response})
+		"Status":  "success",
+		"Code": 200,
+		"Message": "product details are:",
+		"Data":  response})
 }

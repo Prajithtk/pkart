@@ -107,8 +107,6 @@ func ShowWishlist(c *gin.Context) {
 			"Name":  v.Product.Name,
 			"Price": v.Product.Price,
 			"Image1": v.Product.Image1,
-			// "Image2": v.Product.Image2,
-			// "Image3": v.Product.Image3,
 		})
 	}
 	c.JSON(200, gin.H{

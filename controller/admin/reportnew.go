@@ -270,10 +270,11 @@ func GetReportData(c *gin.Context) {
 	path := fmt.Sprintf("/home/prajith/Desktop/Bttp/salesReport_%s_%s.pdf", time.Now().Format("20060102_150405"), Filter)
 	if err := pdf.OutputFileAndClose(path); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"Code":    http.StatusUnauthorized,
-			"Message": "Failed to generate PDF file",
-			"Status":  "Error!",
+			"Status":  "error",
+			"Code":    401,
+			"Message": "failed to generate PDF file",
 			"Error":   err.Error(),
+			"Data": gin.H{},
 		})
 		return
 	}
@@ -284,9 +285,9 @@ func GetReportData(c *gin.Context) {
 	c.File(path)
 
 	c.JSON(200, gin.H{
-		"Status":  "Success!",
+		"Status":  "success",
 		"Code":    200,
-		"Message": "Pdf downloaded successfully!",
+		"Message": "PDF downloaded successfully",
 		"Data":    gin.H{},
 	})
 }

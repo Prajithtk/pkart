@@ -34,11 +34,3 @@ func GenerateRandomAlphanumericCode(n int) (string, error) {
   return base64.URLEncoding.EncodeToString(b)[:n], nil
 }
 
-// func main() {
-//   // Example usage
-//   code, err := GenerateRandomAlphanumericCode(10)
-//   if err != nil {
-//     panic(err) // Replace with proper error handling in production
-//   }
-//   println(code)
-// }

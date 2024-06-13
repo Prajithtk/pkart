@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"net/http"
 	"pkart/database"
 	"pkart/helper"
 	"pkart/model"
@@ -23,7 +22,7 @@ func CartCheckOut(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(404, gin.H{
-			"Status":  "error",
+			"Status":  "failed",
 			"Code":    404,
 			"Message": "failed to bind JSON",
 			"Data":    gin.H{},
@@ -39,7 +38,7 @@ func CartCheckOut(c *gin.Context) {
 
 	if req.AddressId == 0 || address.UserId != userId {
 		c.JSON(404, gin.H{
-			"Status":  "error",
+			"Status":  "failed",
 			"Code":    404,
 			"Message": "no address found",
 			"Data":    gin.H{},
@@ -49,7 +48,7 @@ func CartCheckOut(c *gin.Context) {
 
 	if len(cartItems) == 0 {
 		c.JSON(404, gin.H{
-			"Status":  "error",
+			"Status":  "failed",
 			"Code":    404,
 			"Message": "your cart is empty",
 			"Data":    gin.H{},
@@ -57,12 +56,12 @@ func CartCheckOut(c *gin.Context) {
 		return
 	}
 	for _, item := range cartItems {
-		subTotal += int(item.Quantity) *(int(item.Product.Price)-item.Product.Offer)
+		subTotal += int(item.Quantity) * (int(item.Product.Price) - item.Product.Offer)
 	}
 	// fmt.Println("subtotal:",subTotal)
-	
+
 	fetchCoupon := database.DB.First(&coupon, "code=?", req.Coupon)
-	
+
 	order.UserId = userId
 	order.AddressId = req.AddressId
 	order.Total = subTotal
@@ -71,28 +70,28 @@ func CartCheckOut(c *gin.Context) {
 		order.CouponId = coupon.Id
 	} else if coupon.Min > subTotal {
 		c.JSON(401, gin.H{
-			"Status":  "Fail!",
-			// "Code":    401,
-			"Message": "this coupon is not for this amount",
+			"Status":  "failed",
+			"Code":    401,
+			"Message": "this coupon is not valid for this amount",
 			"Data":    gin.H{},
 		})
 		return
 
-		} else if fetchCoupon.Error != nil {
-			if req.Coupon == "" {
+	} else if fetchCoupon.Error != nil {
+		if req.Coupon == "" {
 			order.CouponId = 1
-			c.JSON(200, gin.H{
+			c.JSON(404, gin.H{
 				"Status":  "error",
-				// "Code":    404,
+				"Code":    404,
 				"Message": "no coupon provided",
 				"Data":    gin.H{},
 			})
 
-			} else {
-				c.JSON(404, gin.H{
+		} else {
+			c.JSON(404, gin.H{
 				"Status":  "error",
 				"Code":    404,
-				"Message": "not a valid coupon code!",
+				"Message": "not a valid coupon code",
 				"Data":    gin.H{},
 			})
 			return
@@ -103,17 +102,17 @@ func CartCheckOut(c *gin.Context) {
 		ShippingCharge = 40
 		order.Amount += ShippingCharge
 	}
-		if req.Payment == "COD" {
-			if order.Amount > 1000 {
-				c.JSON(401, gin.H{
-					"Status":  "Error!",
-					"Code":    401,
-					"Message": "Maximum order amount for Cash On Delivery is 1000",
-					"Data":    gin.H{},
-				})
-				return
-			}
+	if req.Payment == "COD" {
+		if order.Amount > 1000 {
+			c.JSON(401, gin.H{
+				"Status":  "failed",
+				"Code":    401,
+				"Message": "maximum order amount for Cash On Delivery is 1000",
+				"Data":    gin.H{},
+			})
+			return
 		}
+	}
 	num := helper.GenerateInt()
 	numb, _ := strconv.Atoi(num)
 	order.Id, _ = strconv.Atoi(num)
@@ -125,15 +124,15 @@ func CartCheckOut(c *gin.Context) {
 			OrderId:   uint(order.Id),
 			ProductId: list.ProductId,
 			Quantity:  list.Quantity,
-			SubTotal: float64(list.Product.Price-(list.Product.Offer))*float64(list.Quantity),
-			Amount: (float64(list.Product.Price-(list.Product.Offer))*float64(list.Quantity))-(float64(list.Product.Price-(list.Product.Offer))*float64(list.Quantity))*float64(coupon.Value)/100,
+			SubTotal:  float64(list.Product.Price-(list.Product.Offer)) * float64(list.Quantity),
+			Amount:    (float64(list.Product.Price-(list.Product.Offer)) * float64(list.Quantity)) - (float64(list.Product.Price-(list.Product.Offer))*float64(list.Quantity))*float64(coupon.Value)/100,
 			Status:    "pending",
 		}
 		if err := database.DB.Create(&orderitem); err.Error != nil {
 			c.JSON(403, gin.H{
-				"Status":  "error",
+				"Status":  "failed",
 				"Code":    403,
-				"Message": "couldn't place the order. Please try again later.",
+				"Message": "couldn't place the order, please try again later.",
 				"Error":   err.Error,
 				"Data":    gin.H{},
 			})
@@ -158,7 +157,7 @@ func CartCheckOut(c *gin.Context) {
 		}
 		if err := database.DB.Create(&payment); err.Error != nil {
 			c.JSON(403, gin.H{
-				"Status":  "error",
+				"Status":  "failed",
 				"Code":    403,
 				"Message": "failed to process COD!! Try again later.",
 				"Error":   err.Error,
@@ -182,7 +181,7 @@ func CartCheckOut(c *gin.Context) {
 		razorIde, err := PaymentHandler(numb, payment.Amount)
 
 		if err != nil {
-				c.JSON(406, gin.H{
+			c.JSON(406, gin.H{
 				"Status":  "error",
 				"Code":    406,
 				"Message": "payment gateway not initiated.",
@@ -207,11 +206,16 @@ func CartCheckOut(c *gin.Context) {
 			"Message": "Complete the payment to place the order",
 			"Data": gin.H{
 				"Payment": razorIde,
-				"Amount":	order.Amount,
+				"Amount":  order.Amount,
 			},
 		})
 	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid payment method"})
+		c.JSON(400, gin.H{
+			"Status":  "failed",
+			"Code":    400,
+			"Message": "invalid payment method",
+			"Data":    gin.H{},
+		})
 		return
 	}
 }

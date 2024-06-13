@@ -18,7 +18,12 @@ func AddCoupon(c *gin.Context) {
 
 	var addCoupon Couponst
 	if err := c.ShouldBindJSON(&addCoupon); err != nil {
-		c.JSON(404, gin.H{"error": "failed to bind json"})
+		c.JSON(404, gin.H{
+			"Status":  "failed",
+			"Code":    404,
+			"Message": "failed to bind json",
+			"Data":    gin.H{},
+		})
 		return
 	}
 
@@ -33,9 +38,19 @@ func AddCoupon(c *gin.Context) {
 
 	err := database.DB.Create(&coupon)
 	if err.Error != nil {
-		c.JSON(409, gin.H{"message": "Coupon name or code already exist, please try to edit"})
+		c.JSON(409, gin.H{
+			"Status":  "failed",
+			"Code":    409,
+			"Message": "coupon name or code already exist, please try to edit",
+			"Data":    gin.H{},
+		})
 	} else {
-		c.JSON(200, gin.H{"message": "Coupon added successfully"})
+		c.JSON(200, gin.H{
+			"Status":  "success",
+			"Code":    200,
+			"Message": "coupon added successfully",
+			"Data":    gin.H{},
+		})
 	}
 }
 
@@ -57,9 +72,10 @@ func ViewCoupon(c *gin.Context) {
 		couponinfo = append(couponinfo, coupondetails)
 	}
 	c.JSON(200, gin.H{
-		"status":  "True",
-		"message": "The coupon details are :",
-		"values":  couponinfo})
+		"Status":  "success",
+		"Code": 200,
+		"Message": "the coupon details are :",
+		"Data":  couponinfo})
 }
 
 func EditCoupon(c *gin.Context) {
@@ -75,9 +91,19 @@ func EditCoupon(c *gin.Context) {
 	database.DB.Model(&model.Coupons{}).Where("Id=?", Id).Updates(edit)
 
 	if coupon.Id == 0 {
-		c.JSON(404, gin.H{"error": "Coupon not found."})
+		c.JSON(404, gin.H{
+			"Status":  "failed",
+			"Code":    404,
+			"Message": "coupon not found",
+			"Data":    gin.H{},
+		})
 	} else {
-		c.JSON(200, gin.H{"message": "Coupon edited succesfully."})
+		c.JSON(200, gin.H{
+			"Status":  "success",
+			"Code":    200,
+			"Message": "coupon edited successfully",
+			"Data":    gin.H{},
+		})
 	}
 
 }
@@ -85,21 +111,23 @@ func EditCoupon(c *gin.Context) {
 func DeleteCoupon(c *gin.Context) {
 
 	Id, _ := strconv.Atoi(c.Param("Id"))
-
 	var coupon model.Coupons
-
 	database.DB.First(&coupon, Id)
 
 	if coupon.Id == 0 {
 		c.JSON(404, gin.H{
-			"success": "False",
-			"message": "Coupon not found.",
-			"data":    "{ }"})
+			"Status": "failed",
+			"Code": 404,
+			"Message": "Coupon not found.",
+			"Data":    gin.H{},
+		})
 	} else {
 		database.DB.Delete(&coupon)
 		c.JSON(200, gin.H{
-			"success": "True",
-			"message": "Coupon deleted successfully",
-			"data":    "{ }"})
+			"Status": "success",
+			"Code": 200,
+			"Message": "coupon deleted successfully",
+			"Data":    gin.H{},
+		})
 	}
 }

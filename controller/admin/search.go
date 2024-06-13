@@ -10,9 +10,6 @@ import (
 
 func SearchProductAd(c *gin.Context) {
 
-	fmt.Println("")
-	fmt.Println("-----------------------------SEARCH PRODUCT------------------------")
-
 	var products []model.Products
 	var show []gin.H
 
@@ -22,9 +19,9 @@ func SearchProductAd(c *gin.Context) {
 	database.DB.Where("name ILIKE ?", "%"+searchQuery+"%").Find(&products)
 	if len(products) == 0 {
 		c.JSON(404, gin.H{
-			"Status":  "Fail!",
+			"Status":  "failed",
 			"Code":    404,
-			"Message": "Products not found!",
+			"Message": "products not found",
 			"Data":    gin.H{},
 		})
 		return
@@ -51,9 +48,9 @@ func SearchProductAd(c *gin.Context) {
 		})
 	}
 	c.JSON(200, gin.H{
-		"Status":  "Success!",
+		"Status":  "success",
 		"Code":    200,
-		"Message": "Showing searched products!",
+		"Message": "showing searched products",
 		"Data":    show,
 	})
 }

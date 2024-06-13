@@ -32,15 +32,21 @@ func ViewProducts(c *gin.Context) {
 		productinfo = append(productinfo, productdetails)
 	}
 	c.JSON(200, gin.H{
-		"status":  "true",
-		"message": "product details are:",
-		"values":  productinfo})
+		"Status":  "success",
+		"Code": 200,
+		"Message": "product details are:",
+		"Data":  productinfo})
 }
 func AddProducts(c *gin.Context) {
 	// var Product model.Products
 	if err := c.ShouldBindJSON(&Product); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to bind json"})
-		return
+		c.JSON(400, gin.H{
+			"Status": "failed",
+			"Code": 400,
+			"Message": "failed to bind json",
+			"Data":    gin.H{},
+		})		
+	return
 	}
 
 	// Checking if a product with the same name already exists
@@ -48,23 +54,32 @@ func AddProducts(c *gin.Context) {
 	var existingProduct model.Products
 	if result := database.DB.Where("name=?", Product.Name).First(&existingProduct); result.Error == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"success": "false",
-			"message": "product already exists!!! try edit product"})
+			"Status": "failed",
+			"Code": 400,
+			"Message": "product already exists, try edit product",
+			"Data": gin.H{},
+		})
 		return
 	}
 	// If no existing product found, proceed with adding the new product
 
 	c.JSON(http.StatusSeeOther, gin.H{
-		"success": "true",
-		"message": "please upload images"})
+		"status": "success",
+		"Code": 303,
+		"message": "please upload images",
+		"Data": gin.H{},
+	})
 
 }
 func ProductImage(c *gin.Context) {
 	file, err := c.MultipartForm()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"success": "false",
-			"message": "Failed to fetch images"})
+			"Status": "failed",
+			"Code": 400,
+			"Message": "Failed to fetch images",
+			"Data": gin.H{},
+		})
 		return
 	}
 	files := file.File["images"]
@@ -74,8 +89,11 @@ func ProductImage(c *gin.Context) {
 		filePath := "./images/" + strconv.Itoa(i) + "_" + val.Filename
 		if err := c.SaveUploadedFile(val, filePath); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"success": "false",
-				"message": "Failed to save images"})
+				"Status": "failed",
+				"Code": 400,
+				"Message": "failed to save images",
+				"Data": gin.H{},
+			})
 			return
 		}
 		imagePaths = append(imagePaths, filePath)
@@ -86,14 +104,20 @@ func ProductImage(c *gin.Context) {
 
 	if err := database.DB.Create(&Product).Error; err != nil {
 		c.JSON(501, gin.H{
-			"success": "false",
-			"message": "Failed to add product to database"})
+			"Status": "failed",
+			"Code": 501,
+			"Message": "Failed to add product to database",
+		"Data": gin.H{},
+	})
 		return
 	}
 
 	c.JSON(200, gin.H{
-		"success": "true",
-		"message": "Product added successfully"})
+		"Status": "success",
+		"Code": 200,
+		"Message": "product added successfully",
+		"Data": gin.H{},
+	})
 	Product = model.Products{}
 
 }
@@ -102,20 +126,29 @@ func EditProducts(c *gin.Context) {
 	var productinfo model.Products
 	if err := c.ShouldBindJSON(&productinfo); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"success": "false",
-			"message": "failed to bind json"})
+			"Status": "failed",
+			"Code": 400,
+			"message": "failed to bind json",
+			"Data" : gin.H{},
+		})
 		return
 	}
 	id := c.Param("ID")
 	if err := database.DB.Where("id=?", id).Updates(&productinfo); err.Error != nil {
 		c.JSON(404, gin.H{
-			"success": "false",
-			"message": "failed to edit product"})
+			"Status": "success",
+			"Code" : 404,
+			"Message": "failed to edit product",
+			"Data": gin.H{},
+		})
 		return
 	}
 	c.JSON(200, gin.H{
-		"success": "true",
-		"message": "successfully editted"})
+		"Status": "success",
+		"Code": 200,
+		"Message": "successfully edited the product",
+		"Data": gin.H{},
+	})
 }
 func DeleteProducts(c *gin.Context) {
 	var product model.Products
@@ -123,11 +156,17 @@ func DeleteProducts(c *gin.Context) {
 	err := database.DB.Where("id=?", id).Delete(&product)
 	if err.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": "false",
-			"message": "failed to delete product"})
+			"Status": "failed",
+			"Code": 500,
+			"Message": "failed to delete product",
+			"Data": gin.H{},
+		})
 		return
 	}
 	c.JSON(http.StatusSeeOther, gin.H{
-		"success": "true",
-		"message": "Product Deleted Successfully"})
+		"Status": "success",
+		"Code": 303,
+		"message": "Product Deleted Successfully",
+		"Data": gin.H{},
+	})
 }
