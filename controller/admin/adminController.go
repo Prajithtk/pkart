@@ -66,7 +66,7 @@ func AdminLogin(c *gin.Context) {
 				"message": "failed to create token"})
 			return
 		}
-		c.SetCookie("JwtTokenAdmin", token, int((time.Hour * 100).Seconds()), "/", "localhost", false, false)
+		c.SetCookie("JwtTokenAdmin", token, int((time.Hour * 100).Seconds()), "/", "pkartz.shop", false, false)
 		c.JSON(200, gin.H{
 			"Status":  "Success!",
 			"Code":    200,
