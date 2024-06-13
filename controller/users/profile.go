@@ -15,7 +15,7 @@ func ShowProfile(c *gin.Context) {
 	userId := c.GetUint("userid")
 	var userProfile model.Users
 	// var userInfo []gin.H
-	if err := database.DB.Preload("addresses").Where("id=?", userId).First(&userProfile).Error; err != nil {
+	if err := database.DB.Where("id=?", userId).First(&userProfile).Error; err != nil {
 		c.JSON(500, gin.H{
 			"Status":  "failed",
 			"Code":    500,
