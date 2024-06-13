@@ -39,6 +39,7 @@ func AddWishlist(c *gin.Context) {
 		})
 		return
 	}
+	
 	c.JSON(200, gin.H{
 		"Status":  "success",
 		"Code":    200,

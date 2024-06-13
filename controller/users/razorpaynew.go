@@ -20,6 +20,7 @@ func RazorPay(c *gin.Context) {
 
 	fmt.Println("")
 	fmt.Println("-----------------------------RAZOR PAY------------------------")
+	fmt.Println("-----------------------------not sure it ------------------------")
 
 	var payment model.Payment
 	var orderitems []model.OrderItem

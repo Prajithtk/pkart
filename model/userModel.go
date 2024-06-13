@@ -17,7 +17,8 @@ type Users struct {
 	// Wallet      int    `json:"wallet" gorm:"default:0"` //not
 	ReferalCode string `json:"referalcode"`
 	// ReferalsId	[]uint
-	// Address []Address `json:"address" gorm:"foreignKey:UserId"` //not
+	Address []Address `json:"address" gorm:"foreignKey:UserId"`
+	
 	// IsBlocked bool   `json:"isblocked" gorm:"default:false"`
 }
 
@@ -30,7 +31,7 @@ type Address struct {
 	Landmark     string `json:"landmark"`
 	PinCode      string `json:"pincode"`
 	UserId       uint   `json:"userid"`
-	User         Users
+	// User         Users
 }
 
 type Otp struct {
